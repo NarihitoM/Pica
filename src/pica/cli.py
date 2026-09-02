@@ -44,7 +44,14 @@ def cmd_collect(args):
                 break
             if answer == "s":
                 continue
-        collect(label, num_samples=args.samples, camera_id=args.camera, append=not args.replace)
+        collect(
+            label,
+            num_samples=args.samples,
+            camera_id=args.camera,
+            append=not args.replace,
+            position=None if args.gesture else (index, len(labels)),
+            next_label=None if args.gesture or index >= len(labels) else labels[index],
+        )
 
 
 def cmd_train(args):
