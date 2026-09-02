@@ -13,6 +13,15 @@ PyTorch classifier trained on your own recorded gestures.
 py -m pip install -r requirements.txt
 ```
 
+Notebook outputs and execution counts are stripped on commit so re-running cells doesn't
+create diffs. Git filters aren't cloned, so run this once per clone:
+
+```
+git config filter.nbclean.clean "py scripts/nbclean.py"
+git config filter.nbclean.smudge cat
+git config filter.nbclean.required true
+```
+
 ## Gestures
 
 | Gesture | Action |
@@ -23,13 +32,11 @@ py -m pip install -r requirements.txt
 | `one_finger_down` | volume down |
 | `two_finger_up` | scroll up (continuous while held) |
 | `two_finger_down` | scroll down (continuous while held) |
-| `pinch` (both hands) | screen brightness — move your hands apart to brighten, together to dim |
+| `three_finger_up` | screen brightness up |
+| `three_finger_down` | screen brightness down |
 
-Brightness is the only two-handed gesture: both hands must be recognised as `pinch` at
-the same time before it reacts, so it never fires by accident while you're using the
-cursor. Record `pinch` one hand at a time like every other gesture — the classifier only
-ever sees a single hand, and the app checks that both came back as `pinch`.
-Brightness uses Windows WMI, so it works on laptop displays.
+Brightness steps by `brightness.step` percent per gesture (default 10) and uses Windows
+WMI, so it works on laptop displays.
 
 Edit `config/config.yaml` to remap gestures to actions, or add new ones (see below).
 
@@ -80,7 +87,7 @@ Pica/
 └── src/
     ├── assets/logo.jpg        # project logo
     ├── components/            # one folder per feature, each a package with a barrel export
-    │   ├── brightness/        # two-hand pinch distance -> display brightness (WMI)
+    │   ├── brightness/        # steps display brightness up/down (WMI)
     │   ├── camera_stream/     # threaded webcam reader
     │   ├── classifier/        # PyTorch MLP: landmarks -> gesture name + confidence
     │   ├── hand_tracker/      # MediaPipe HandLandmarker wrapper

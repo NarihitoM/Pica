@@ -6,6 +6,8 @@ gestures:
   close_palm: left_click
   one_finger_up: volume_up
   one_finger_down: volume_down
+  three_finger_up: brightness_up
+  three_finger_down: brightness_down
 
 cursor:
   gesture: open_palm       # gesture name that drives cursor movement
@@ -20,11 +22,7 @@ scroll:
   down_gesture: two_finger_down
   amount: 40
 
-# pinch with BOTH hands to control screen brightness -- distance between them sets the level
 brightness:
-  gesture: pinch      # both hands must show this gesture before brightness reacts
-  min_distance: 0.15  # hands this close -> dimmest
-  max_distance: 0.6   # hands this far apart -> brightest
-  step: 5             # ignore level changes smaller than this
+  step: 10  # percent added or removed per gesture
 
 action_cooldown_seconds: 0.6
