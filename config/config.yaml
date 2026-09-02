@@ -1,4 +1,5 @@
 camera_id: 0
+privacy_blur: false  # blur face + background in the debug window -- costs performance, enable only when recording
 confidence_threshold: 0.75
 
 # gesture name -> action name (handled in src/components/system_control.py)

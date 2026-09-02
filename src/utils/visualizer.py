@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 
+_face_cascade = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+)
+
 _HAND_CONNECTIONS = [
     (0, 1), (1, 2), (2, 3), (3, 4),          # thumb
     (0, 5), (5, 6), (6, 7), (7, 8),          # index
@@ -19,6 +23,12 @@ def draw_landmarks(frame, landmarks: np.ndarray):
         cv2.line(frame, points[a], points[b], (0, 255, 0), 2)
     for p in points:
         cv2.circle(frame, p, 4, (0, 128, 255), -1)
+
+
+def blur_faces(frame):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    for x, y, w, h in _face_cascade.detectMultiScale(gray, 1.1, 5):
+        frame[y:y + h, x:x + w] = cv2.GaussianBlur(frame[y:y + h, x:x + w], (51, 51), 0)
 
 
 def draw_status(frame, gesture: str | None, confidence: float | None):

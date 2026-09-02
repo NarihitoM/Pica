@@ -1,11 +1,12 @@
 import cv2
 
+from src.components.background_blur import BackgroundBlurrer
 from src.components.camera_stream import CameraStream
 from src.components.classifier import GestureClassifier
 from src.components.hand_tracker import HandTracker
 from src.components.system_control import SystemControl
 from src.utils.config import load_config
-from src.utils.visualizer import draw_landmarks, draw_status
+from src.utils.visualizer import blur_faces, draw_landmarks, draw_status
 
 
 def run():
@@ -13,11 +14,13 @@ def run():
     threshold = config.get("confidence_threshold", 0.75)
     cursor_threshold = config.get("cursor", {}).get("confidence_threshold", 0.6)
     cursor_gesture = config.get("cursor", {}).get("gesture")
+    privacy_blur = config.get("privacy_blur", False)
 
     camera = CameraStream(camera_id=config.get("camera_id", 0)).start()
     tracker = HandTracker()
     classifier = GestureClassifier()
     control = SystemControl(config)
+    background_blurrer = BackgroundBlurrer() if privacy_blur else None
 
     try:
         while True:
@@ -26,6 +29,9 @@ def run():
                 continue
 
             frame = cv2.flip(frame, 1)
+            if privacy_blur:
+                frame = background_blurrer.apply(frame)
+                blur_faces(frame)
             hands = tracker.process_with_handedness(frame)
 
             gesture, confidence = None, None
@@ -51,6 +57,8 @@ def run():
     finally:
         camera.stop()
         tracker.close()
+        if background_blurrer:
+            background_blurrer.close()
         cv2.destroyAllWindows()
 
 
