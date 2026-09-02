@@ -75,16 +75,16 @@ class SystemControl:
 
 def demo():
     cfg = {
-        "gestures": {"open_palm": "left_click"},
-        "cursor": {"gesture": "fist", "landmark_index": 8, "smoothing": 0.5},
+        "gestures": {"close_palm": "left_click"},
+        "cursor": {"gesture": "open_palm", "landmark_index": 0, "smoothing": 0.3, "margin": 0.2},
         "action_cooldown_seconds": 1.0,
     }
     control = SystemControl(cfg)
-    assert control._ready("open_palm") is True
-    control._last_fired["open_palm"] = 0.0
-    assert control._ready("open_palm") is True
-    control._last_fired["open_palm"] = 1e18
-    assert control._ready("open_palm") is False
+    assert control._ready("close_palm") is True
+    control._last_fired["close_palm"] = 0.0
+    assert control._ready("close_palm") is True
+    control._last_fired["close_palm"] = 1e18
+    assert control._ready("close_palm") is False
     print("system_control demo OK")
 
 

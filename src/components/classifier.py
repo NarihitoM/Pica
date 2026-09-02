@@ -47,7 +47,7 @@ class GestureClassifier:
 
 def demo():
     # build + save a throwaway model so the load/predict path is exercised without training data
-    labels = ["pinch", "fist", "open_palm"]
+    labels = ["open_palm", "close_palm"]
     model = GestureNet(num_classes=len(labels))
     tmp_path = Path("models/_demo_classifier.pth")
     torch.save({"labels": labels, "state_dict": model.state_dict()}, tmp_path)

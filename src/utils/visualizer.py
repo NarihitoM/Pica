@@ -30,7 +30,7 @@ def demo():
     frame = np.zeros((100, 100, 3), dtype=np.uint8)
     lm = np.random.rand(21, 3).astype(np.float32)
     draw_landmarks(frame, lm)
-    draw_status(frame, "pinch", 0.9)
+    draw_status(frame, "open_palm", 0.9)
     draw_status(frame, None, None)
     print("visualizer demo OK")
 
