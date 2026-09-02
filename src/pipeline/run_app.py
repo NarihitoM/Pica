@@ -1,5 +1,3 @@
-import threading
-
 import cv2
 
 from src.components.camera_stream import CameraStream
@@ -21,12 +19,8 @@ def run():
     classifier = GestureClassifier()
     control = SystemControl(config)
 
-    latest = {"frame": None, "gesture": None, "landmarks": None}
-    lock = threading.Lock()
-    running = True
-
-    def track():
-        while running:
+    try:
+        while True:
             frame = camera.read()
             if frame is None:
                 continue
@@ -35,7 +29,6 @@ def run():
             hands = tracker.process_with_handedness(frame)
 
             gesture, confidence = None, None
-            active, active_landmarks = None, None
             if hands:
                 landmarks, handedness = hands[0]
                 class_landmarks = landmarks.copy()
@@ -47,36 +40,14 @@ def run():
 
                 gate = cursor_threshold if gesture == cursor_gesture else threshold
                 if confidence >= gate:
-                    active, active_landmarks = gesture, landmarks
+                    control.handle(gesture, landmarks)
 
             draw_status(frame, gesture, confidence)
-            with lock:
-                latest["frame"] = frame
-                latest["gesture"] = active
-                latest["landmarks"] = active_landmarks
-
-    worker = threading.Thread(target=track, daemon=True)
-    worker.start()
-
-    try:
-        shown = None
-        while True:
-            with lock:
-                frame = latest["frame"]
-                gesture = latest["gesture"]
-                landmarks = latest["landmarks"]
-
-            control.handle(gesture, landmarks)
-
-            if frame is not None and frame is not shown:
-                cv2.imshow("Pica", frame)
-                shown = frame
+            cv2.imshow("Pica", frame)
 
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     finally:
-        running = False
-        worker.join(timeout=1)
         camera.stop()
         tracker.close()
         control.close()

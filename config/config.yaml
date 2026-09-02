@@ -3,7 +3,7 @@ confidence_threshold: 0.75
 
 # gesture name -> action name (handled in src/components/system_control.py)
 gestures:
-  close_palm: left_drag
+  close_palm: left_click
   one_finger_up: volume_up
   one_finger_down: volume_down
   three_finger_up: brightness_up
@@ -12,7 +12,7 @@ gestures:
 cursor:
   gesture: open_palm       # gesture name that drives cursor movement
   landmark_index: 0        # wrist -- stays stable while fingers curl into the click gesture
-  smoothing: 0.1           # 0 = no smoothing, closer to 1 = smoother/slower
+  smoothing: 0.2           # 0 = no smoothing, closer to 1 = smoother/slower
   margin: 0.2               # fraction of frame edge ignored; smaller hand movement covers full screen
   confidence_threshold: 0.6 # lower bar than clicks -- a missed cursor frame just looks laggy, not risky
 

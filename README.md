@@ -18,7 +18,7 @@ py -m pip install -r requirements.txt
 | Gesture | Action |
 |---|---|
 | `open_palm` | move the cursor (tracks your wrist position) |
-| `close_palm` | hold to drag -- press and hold moves windows, a quick close is a click |
+| `close_palm` | left click |
 | `one_finger_up` | volume up |
 | `one_finger_down` | volume down |
 | `two_finger_up` | scroll up (continuous while held) |
