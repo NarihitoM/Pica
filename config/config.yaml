@@ -1,0 +1,14 @@
+camera_id: 0
+confidence_threshold: 0.75
+
+# gesture name -> action name (handled in src/components/system_control.py)
+gestures:
+  close_palm: left_click
+
+cursor:
+  gesture: open_palm       # gesture name that drives cursor movement
+  landmark_index: 0        # wrist -- stays stable while fingers curl into the click gesture
+  smoothing: 0.3           # 0 = no smoothing, closer to 1 = smoother/slower
+  margin: 0.2               # fraction of frame edge ignored; smaller hand movement covers full screen
+
+action_cooldown_seconds: 0.6
