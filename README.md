@@ -19,6 +19,10 @@ py -m pip install -r requirements.txt
 |---|---|
 | `open_palm` | move the cursor (tracks your wrist position) |
 | `close_palm` | left click |
+| `one_finger_up` | volume up |
+| `one_finger_down` | volume down |
+| `two_finger_up` | scroll up (continuous while held) |
+| `two_finger_down` | scroll down (continuous while held) |
 
 Edit `config/config.yaml` to remap gestures to actions, or add new ones (see below).
 
@@ -29,6 +33,10 @@ Edit `config/config.yaml` to remap gestures to actions, or add new ones (see bel
 ```
 py collect.py open_palm --num-samples 100
 py collect.py close_palm --num-samples 100
+py collect.py one_finger_up --num-samples 100
+py collect.py one_finger_down --num-samples 100
+py collect.py two_finger_up --num-samples 100
+py collect.py two_finger_down --num-samples 100
 ```
 
 A camera window opens with a live sample counter — hold the gesture steady while it
@@ -69,6 +77,7 @@ Pica/
 ├── models/                   # trained classifier + MediaPipe model asset
 ├── notebooks/                # data collection + training notebooks
 └── src/
+    ├── assets/logo.jpg        # project logo
     ├── components/           # camera_stream, hand_tracker, classifier, system_control
     ├── pipeline/run_app.py   # wires camera -> tracker -> classifier -> system_control
     └── utils/                 # landmark normalization, config loader, debug overlay
@@ -84,3 +93,13 @@ Pica/
 - **Cursor jumps when clicking**: the cursor gesture tracks the wrist (stable), not a
   fingertip (moves as fingers curl) — if you change `cursor.landmark_index`, keep this
   in mind.
+- **A newly recorded gesture doesn't do anything**: recording only saves raw samples to
+  `data/annotations/` — it does not update the live model. Re-run step 2 (training)
+  after recording any new gesture, or old/missing gestures will silently not fire.
+- **A gesture works in testing but misfires live**: the model likely overfit to one
+  distance/angle/lighting setup. When recording, move your hand around a bit (distance,
+  slight rotation) while holding the pose instead of staying perfectly still, so the
+  model generalizes better.
+- **Similar gestures get confused** (e.g. one finger vs two fingers): make sure the
+  poses are clearly distinct when recording — ambiguous hand shapes will bleed into
+  each other no matter how much data you add.

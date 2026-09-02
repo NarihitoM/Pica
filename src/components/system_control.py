@@ -5,6 +5,11 @@ import pyautogui
 
 pyautogui.FAILSAFE = True  # move mouse to a screen corner to abort
 
+_MEDIA_ACTIONS = {
+    "volume_up": "volumeup",
+    "volume_down": "volumedown",
+}
+
 
 class SystemControl:
     """Maps gesture names -> pyautogui actions, using config for the mapping + cooldown."""
@@ -12,6 +17,7 @@ class SystemControl:
     def __init__(self, config: dict):
         self.gesture_actions: dict = config.get("gestures", {})
         self.cursor_cfg: dict = config.get("cursor", {})
+        self.scroll_cfg: dict = config.get("scroll", {})
         self.cooldown = config.get("action_cooldown_seconds", 0.6)
 
         self._last_fired: dict[str, float] = {}
@@ -21,6 +27,13 @@ class SystemControl:
     def handle(self, gesture: str, landmarks: np.ndarray):
         if gesture == self.cursor_cfg.get("gesture"):
             self._move_cursor(landmarks)
+            return
+
+        if gesture == self.scroll_cfg.get("up_gesture"):
+            pyautogui.scroll(self.scroll_cfg.get("amount", 40))
+            return
+        if gesture == self.scroll_cfg.get("down_gesture"):
+            pyautogui.scroll(-self.scroll_cfg.get("amount", 40))
             return
 
         action = self.gesture_actions.get(gesture)
@@ -71,6 +84,8 @@ class SystemControl:
     def _run_action(self, action: str):
         if action == "left_click":
             pyautogui.click()
+        elif action in _MEDIA_ACTIONS:
+            pyautogui.press(_MEDIA_ACTIONS[action])
 
 
 def demo():

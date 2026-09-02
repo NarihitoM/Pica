@@ -14,20 +14,39 @@ class HandTracker:
     def __init__(self, max_hands: int = 1, min_detection_confidence: float = 0.4, model_path: str = MODEL_PATH):
         options = vision.HandLandmarkerOptions(
             base_options=BaseOptions(model_asset_path=model_path),
-            running_mode=vision.RunningMode.IMAGE,
+            running_mode=vision.RunningMode.VIDEO,
             num_hands=max_hands,
             min_hand_detection_confidence=min_detection_confidence,
             min_hand_presence_confidence=0.4,
         )
         self._landmarker = vision.HandLandmarker.create_from_options(options)
+        self._frame_index = 0
 
     def process(self, frame_bgr) -> list[np.ndarray]:
+        """Returns raw landmarks per hand -- real screen-space coordinates, unmirrored,
+        so cursor control always matches actual hand movement direction."""
         rgb = frame_bgr[:, :, ::-1].copy()
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-        result = self._landmarker.detect(mp_image)
+        result = self._landmarker.detect_for_video(mp_image, self._frame_index)
+        self._frame_index += 1
         return [
             np.array([[lm.x, lm.y, lm.z] for lm in hand], dtype=np.float32)
             for hand in result.hand_landmarks
+        ]
+
+    def process_with_handedness(self, frame_bgr) -> list[tuple[np.ndarray, str]]:
+        """Same as process(), but also returns each hand's handedness label
+        ('Left'/'Right') for callers that need to normalize for classification."""
+        rgb = frame_bgr[:, :, ::-1].copy()
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+        result = self._landmarker.detect_for_video(mp_image, self._frame_index)
+        self._frame_index += 1
+        return [
+            (
+                np.array([[lm.x, lm.y, lm.z] for lm in hand], dtype=np.float32),
+                handedness[0].category_name,
+            )
+            for hand, handedness in zip(result.hand_landmarks, result.handedness)
         ]
 
     def close(self):
