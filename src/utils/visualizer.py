@@ -1,9 +1,17 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 
 _face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
+
+_LOGO_HEIGHT = 40
+_logo = cv2.imread(str(Path(__file__).resolve().parents[1] / "assets" / "logo.jpg"))
+if _logo is not None:
+    scale = _LOGO_HEIGHT / _logo.shape[0]
+    _logo = cv2.resize(_logo, (int(_logo.shape[1] * scale), _LOGO_HEIGHT))
 
 _HAND_CONNECTIONS = [
     (0, 1), (1, 2), (2, 3), (3, 4),          # thumb
@@ -31,9 +39,21 @@ def blur_faces(frame):
         frame[y:y + h, x:x + w] = cv2.GaussianBlur(frame[y:y + h, x:x + w], (51, 51), 0)
 
 
+def draw_logo(frame, x: int = 10, y: int = 10) -> int:
+    """Draws the logo top-left, returns the x where following overlays should start."""
+    if _logo is None:
+        return x
+    h, w = _logo.shape[:2]
+    if y + h > frame.shape[0] or x + w > frame.shape[1]:
+        return x
+    frame[y:y + h, x:x + w] = _logo
+    return x + w + 12
+
+
 def draw_status(frame, gesture: str | None, confidence: float | None):
     text = "no hand" if gesture is None else f"{gesture} ({confidence:.2f})"
-    cv2.putText(frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
+    x = draw_logo(frame)
+    cv2.putText(frame, text, (x, 38), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
 
 
 def demo():
