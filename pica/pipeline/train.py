@@ -13,7 +13,7 @@ def load_dataset(source_dir=None) -> tuple[np.ndarray, np.ndarray, list[str]]:
     source_dir = source_dir or annotations_dir()
     labels = sorted(p.stem for p in source_dir.glob("*.npy"))
     if not labels:
-        raise FileNotFoundError(f"no recordings in {source_dir} -- run 'pica collect <gesture>' first")
+        raise FileNotFoundError(f"no recordings in {source_dir} -- run 'narihito-pica collect <gesture>' first")
 
     X, y = [], []
     for index, label in enumerate(labels):

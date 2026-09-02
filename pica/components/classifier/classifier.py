@@ -12,7 +12,7 @@ INPUT_DIM = 63
 
 class GestureNet(nn.Module):
     """Small MLP -- 63 landmark coordinates in, one score per trained gesture out.
-    Retrained by `pica train` whenever gestures are added or re-recorded."""
+    Retrained by `narihito-pica train` whenever gestures are added or re-recorded."""
 
     def __init__(self, num_classes: int, hidden_dim: int = 64):
         super().__init__()

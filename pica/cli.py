@@ -3,6 +3,8 @@ import sys
 
 from pica.utils.paths import annotations_dir, config_path, home, model_path
 
+COMMAND = "narihito-pica"
+
 
 def gesture_names() -> list[str]:
     """Every gesture the config references, in a sensible order to record them."""
@@ -23,7 +25,7 @@ def cmd_run(args):
     from pica.pipeline.run_app import run
 
     if not model_path().exists():
-        sys.exit(f"no trained model at {model_path()}\nrecord gestures with 'pica collect', then run 'pica train'")
+        sys.exit(f"no trained model at {model_path()}\nrecord gestures with '{COMMAND} collect', then run '{COMMAND} train'")
     run()
 
 
@@ -59,7 +61,7 @@ def cmd_where(args):
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="pica", description="Control your PC with hand gestures.")
+    parser = argparse.ArgumentParser(prog=COMMAND, description="Control your PC with hand gestures.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     run_parser = subparsers.add_parser("run", help="start gesture control")

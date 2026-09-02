@@ -17,17 +17,17 @@ pip install narihito-pica
 ## Quick start
 
 ```
-pica collect     # record every gesture, one at a time
-pica train       # train the classifier on what you recorded
-pica run         # start controlling your PC
+narihito-pica collect     # record every gesture, one at a time
+narihito-pica train       # train the classifier on what you recorded
+narihito-pica run         # start controlling your PC
 ```
 
-`pica collect` walks through each gesture in your config and waits for you to press
+`narihito-pica collect` walks through each gesture in your config and waits for you to press
 Enter before recording it, so you can get your hand ready. Press `s` to skip one or
 `q` to stop. To redo a single gesture:
 
 ```
-pica collect open_palm --replace
+narihito-pica collect open_palm --replace
 ```
 
 Recording appends by default, so `--replace` is what you want when a gesture went badly
@@ -54,7 +54,7 @@ WMI, so it works on laptop displays.
 Everything you create lives outside the package, so upgrading Pica never touches it:
 
 ```
-pica where
+narihito-pica where
 ```
 
 ```
@@ -71,12 +71,12 @@ default the first time you run anything, and is never overwritten after that.
 
 | Command | What it does |
 |---|---|
-| `pica run` | start gesture control (`q` in the window quits) |
-| `pica collect [gesture]` | record samples; loops through every configured gesture if you don't name one |
-| `pica train` | train on your recordings and save the model |
-| `pica where` | print where your config, recordings and model live |
+| `narihito-pica run` | start gesture control (`q` in the window quits) |
+| `narihito-pica collect [gesture]` | record samples; loops through every configured gesture if you don't name one |
+| `narihito-pica train` | train on your recordings and save the model |
+| `narihito-pica where` | print where your config, recordings and model live |
 
-`pica collect` takes `--samples`, `--camera` and `--replace`. `pica train` takes
+`narihito-pica collect` takes `--samples`, `--camera` and `--replace`. `narihito-pica train` takes
 `--epochs`, `--batch-size` and `--lr`.
 
 ## Adding a new gesture
@@ -85,17 +85,17 @@ default the first time you run anything, and is never overwritten after that.
    drive the mouse), mapped to an action.
 2. If the action doesn't exist yet, add it to `_run_action` in
    `pica/components/system_control/system_control.py`.
-3. `pica collect <name>`
-4. `pica train`
+3. `narihito-pica collect <name>`
+4. `narihito-pica train`
 
 ## Project layout
 
 ```
 Pica/
-├── main.py                       # entry point, same as the `pica` command
+├── main.py                       # entry point, same as the `narihito-pica` command
 ├── pyproject.toml
 └── pica/
-    ├── cli.py                    # `pica run` / `collect` / `train` / `where`
+    ├── cli.py                    # `narihito-pica run` / `collect` / `train` / `where`
     ├── default_config.yaml       # seeded into ~/.pica/config.yaml on first run
     ├── assets/                   # logo + the bundled MediaPipe hand model
     ├── components/               # one folder per feature, each a package with a barrel export
@@ -143,9 +143,9 @@ PyPI via Trusted Publishing -- no API token stored anywhere.
 
 ## Troubleshooting
 
-- **`pica run` says there's no trained model**: run `pica collect` then `pica train`.
+- **`narihito-pica run` says there's no trained model**: run `narihito-pica collect` then `narihito-pica train`.
 - **A newly recorded gesture doesn't do anything**: recording only saves samples --
-  it does not update the live model. Run `pica train` after recording.
+  it does not update the live model. Run `narihito-pica train` after recording.
 - **Cursor lags behind your hand**: MediaPipe inference is ~55ms per frame on CPU, which
   caps the loop near 18fps. Lowering `cursor.smoothing` helps a little; the rest is the
   model.
