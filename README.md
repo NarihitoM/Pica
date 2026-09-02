@@ -11,7 +11,7 @@ recorded gestures.
 ## Install
 
 ```
-pip install pica
+pip install narihito-pica
 ```
 
 ## Quick start
@@ -129,6 +129,17 @@ py -m pica.pipeline.train
 py -m pica.components.system_control.system_control
 py -m pica.cli --demo
 ```
+
+## Releasing
+
+CI runs the self-checks on every push. Publishing happens on a GitHub release:
+
+1. Bump `version` in `pyproject.toml`.
+2. Commit and push.
+3. Create a GitHub release tagged `v<version>` (e.g. `v0.2.0`).
+
+The publish workflow checks the tag matches `pyproject.toml`, builds, and uploads to
+PyPI via Trusted Publishing -- no API token stored anywhere.
 
 ## Troubleshooting
 
