@@ -30,14 +30,9 @@ Edit `config/config.yaml` to remap gestures to actions, or add new ones (see bel
 
 ### 1. Record gesture samples
 
-```
-py collect.py open_palm --num-samples 100
-py collect.py close_palm --num-samples 100
-py collect.py one_finger_up --num-samples 100
-py collect.py one_finger_down --num-samples 100
-py collect.py two_finger_up --num-samples 100
-py collect.py two_finger_down --num-samples 100
-```
+Open `notebooks/01_collect_data.ipynb`. Run the setup cells once, then in the last cell
+call `collect('<label>')` for one gesture at a time, e.g. `collect('open_palm')`, and
+run just that cell.
 
 A camera window opens with a live sample counter — hold the gesture steady while it
 records. Press `q` to stop early. Samples are saved to `data/annotations/<label>.npy`.
@@ -63,7 +58,7 @@ Press `q` to quit.
    drive the mouse), mapped to an action.
 2. If the action doesn't exist yet, add it to `_run_action` in
    `src/components/system_control.py`.
-3. Record samples: `py collect.py <name> --num-samples 100`
+3. Record samples: add `collect('<name>')` in `notebooks/01_collect_data.ipynb`.
 4. Retrain: run `notebooks/02_train_model.ipynb`.
 
 ## Project layout
@@ -71,7 +66,6 @@ Press `q` to quit.
 ```
 Pica/
 ├── config/config.yaml       # gesture -> action map, camera id, confidence/cursor tuning
-├── collect.py                # standalone gesture-recording script
 ├── main.py                   # entry point for the live app
 ├── data/                     # recorded samples (gitignored)
 ├── models/                   # trained classifier + MediaPipe model asset
@@ -85,9 +79,10 @@ Pica/
 
 ## Troubleshooting
 
-- **Camera window doesn't appear in VS Code's Jupyter notebook**: OpenCV's window
-  backend is unreliable inside a Jupyter kernel on Windows. Use `collect.py` from a
-  plain terminal instead — same result, no GUI conflicts.
+- **Camera window doesn't appear / notebook kernel hangs while recording**: OpenCV's
+  window backend can be unreliable inside a Jupyter kernel on Windows. If it hangs,
+  interrupt won't always work — find and kill the stuck `ipykernel_launcher` process,
+  then restart the kernel and try again.
 - **`FileNotFoundError` for `gesture_classifier.pth`**: you haven't trained yet — run
   step 2 above.
 - **Cursor jumps when clicking**: the cursor gesture tracks the wrist (stable), not a
