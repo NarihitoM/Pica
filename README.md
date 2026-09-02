@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="src/assets/logo.jpg" alt="Pica logo" width="360">
+</p>
+
 # Pica
 
 Control your PC with hand gestures. Python, MediaPipe hand tracking, and a small
