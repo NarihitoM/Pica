@@ -33,6 +33,19 @@ narihito-pica collect open_palm --replace
 Recording appends by default, so `--replace` is what you want when a gesture went badly
 and you're re-recording it from scratch.
 
+`narihito-pica train` prints how many samples each gesture has and how accurately the
+trained model recognises each one, so you can see which gesture needs re-recording:
+
+```
+training on:
+  close_palm      200 samples
+  open_palm       200 samples
+  total          1600 samples
+accuracy:
+  close_palm      98.5%  (197/200)
+  open_palm      100.0%  (200/200)
+```
+
 ## Gestures
 
 | Gesture | Action |

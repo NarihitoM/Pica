@@ -24,10 +24,34 @@ def load_dataset(source_dir=None) -> tuple[np.ndarray, np.ndarray, list[str]]:
     return np.stack(X).astype(np.float32), np.array(y, dtype=np.int64), labels
 
 
+def report_dataset(y: np.ndarray, labels: list[str]):
+    """Show what each class is actually being trained on -- a gesture with far fewer
+    samples than the rest is the usual reason it misfires live."""
+    width = max(len(label) for label in labels)
+    print("training on:")
+    for index, label in enumerate(labels):
+        print(f"  {label:<{width}}  {int((y == index).sum()):>5} samples")
+    print(f"  {'total':<{width}}  {y.shape[0]:>5} samples")
+
+
+def report_accuracy(model, X: np.ndarray, y: np.ndarray, labels: list[str]):
+    """Per-gesture accuracy on the training data -- a low row means that gesture is
+    being confused with another one, so re-record it with a more distinct pose."""
+    with torch.no_grad():
+        predicted = model(torch.from_numpy(X)).argmax(dim=1).numpy()
+
+    width = max(len(label) for label in labels)
+    print("accuracy:")
+    for index, label in enumerate(labels):
+        mask = y == index
+        hits = int((predicted[mask] == index).sum())
+        total = int(mask.sum())
+        print(f"  {label:<{width}}  {hits / total:>6.1%}  ({hits}/{total})")
+
+
 def train(epochs: int = 30, batch_size: int = 32, lr: float = 1e-3, out_path=None) -> str:
     X, y, labels = load_dataset()
-    print(f"labels: {labels}")
-    print(f"samples: {X.shape[0]}")
+    report_dataset(y, labels)
 
     loader = DataLoader(TensorDataset(torch.from_numpy(X), torch.from_numpy(y)),
                         batch_size=batch_size, shuffle=True)
@@ -45,6 +69,8 @@ def train(epochs: int = 30, batch_size: int = 32, lr: float = 1e-3, out_path=Non
             total += loss.item()
         if epoch % 5 == 0 or epoch == epochs - 1:
             print(f"epoch {epoch}: loss={total / len(loader):.4f}")
+
+    report_accuracy(model, X, y, labels)
 
     out_path = out_path or model_path()
     torch.save({"labels": labels, "state_dict": model.state_dict()}, out_path)
@@ -65,6 +91,10 @@ def demo():
         assert labels == ["close_palm", "open_palm"], "labels must be sorted so class order is stable"
         assert X.shape == (16, 63)
         assert set(y.tolist()) == {0, 1}
+
+        report_dataset(y, labels)
+        model = GestureNet(num_classes=len(labels))
+        report_accuracy(model, X, y, labels)
 
         try:
             load_dataset(Path(tmp) / "empty")
