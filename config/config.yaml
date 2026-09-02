@@ -20,9 +20,9 @@ cursor:
 scroll:
   up_gesture: two_finger_up
   down_gesture: two_finger_down
-  amount: 40
+  amount: 100
 
 brightness:
-  step: 10  # percent added or removed per gesture
+  step: 20  # percent added or removed per gesture
 
 action_cooldown_seconds: 0.6
