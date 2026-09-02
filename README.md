@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="pica/assets/logo.jpg" alt="Pica logo" width="360">
+  <img src="https://raw.githubusercontent.com/NarihitoM/Pica/main/pica/assets/logo.jpg" alt="Pica logo" width="360">
 </p>
 
 # Pica
