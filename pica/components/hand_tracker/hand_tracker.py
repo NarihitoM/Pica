@@ -1,11 +1,11 @@
-from pathlib import Path
-
 import numpy as np
 import mediapipe as mp
 from mediapipe.tasks.python import vision
 from mediapipe.tasks.python.core.base_options import BaseOptions
 
-MODEL_PATH = str(Path(__file__).resolve().parents[3] / "models" / "mediapipe" / "hand_landmarker.task")
+from pica.utils.paths import HAND_LANDMARKER
+
+MODEL_PATH = str(HAND_LANDMARKER)
 
 
 class HandTracker:

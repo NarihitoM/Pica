@@ -4,15 +4,15 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from src.utils.landmarks import flatten, normalize
+from pica.utils.landmarks import flatten, normalize
+from pica.utils.paths import model_path
 
 INPUT_DIM = 63
-DEFAULT_MODEL_PATH = str(Path(__file__).resolve().parents[3] / "models" / "gesture_classifier.pth")
 
 
 class GestureNet(nn.Module):
     """Small MLP -- 63 landmark coordinates in, one score per trained gesture out.
-    Retrained by notebooks/training_model.ipynb whenever gestures are added or re-recorded."""
+    Retrained by `pica train` whenever gestures are added or re-recorded."""
 
     def __init__(self, num_classes: int, hidden_dim: int = 64):
         super().__init__()
@@ -31,8 +31,8 @@ class GestureNet(nn.Module):
 class GestureClassifier:
     """Loads a trained GestureNet and predicts gesture name + confidence from landmarks."""
 
-    def __init__(self, model_path: str = DEFAULT_MODEL_PATH):
-        checkpoint = torch.load(model_path, map_location="cpu", weights_only=True)
+    def __init__(self, path: str | Path | None = None):
+        checkpoint = torch.load(path or model_path(), map_location="cpu", weights_only=True)
         self.labels: list[str] = checkpoint["labels"]
         self.model = GestureNet(num_classes=len(self.labels))
         self.model.load_state_dict(checkpoint["state_dict"])
@@ -49,12 +49,14 @@ class GestureClassifier:
 
 
 def demo():
+    import tempfile
+
     labels = ["open_palm", "close_palm"]
     model = GestureNet(num_classes=len(labels))
-    tmp_path = Path("models/_demo_classifier.pth")
+    tmp_path = Path(tempfile.gettempdir()) / "_pica_demo_classifier.pth"
     torch.save({"labels": labels, "state_dict": model.state_dict()}, tmp_path)
 
-    clf = GestureClassifier(model_path=str(tmp_path))
+    clf = GestureClassifier(path=tmp_path)
     dummy = np.random.rand(21, 3).astype(np.float32)
     name, confidence = clf.predict(dummy)
     assert name in labels

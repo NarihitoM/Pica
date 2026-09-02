@@ -1,11 +1,11 @@
 import cv2
 
-from src.components.camera_stream import CameraStream
-from src.components.classifier import GestureClassifier
-from src.components.hand_tracker import HandTracker
-from src.components.system_control import SystemControl
-from src.utils.config import load_config
-from src.utils.visualizer import draw_landmarks, draw_status
+from pica.components.camera_stream import CameraStream
+from pica.components.classifier import GestureClassifier
+from pica.components.hand_tracker import HandTracker
+from pica.components.system_control import SystemControl
+from pica.utils.config import load_config
+from pica.utils.visualizer import draw_landmarks, draw_status
 
 
 def run():

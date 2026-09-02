@@ -1,9 +1,11 @@
 import yaml
 
+from pica.utils.paths import config_path
 
-def load_config(path: str = "config/config.yaml") -> dict:
+
+def load_config(path: str | None = None) -> dict:
     """Single source of truth for gesture -> action mapping, camera id, and tuning."""
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path or config_path(), "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

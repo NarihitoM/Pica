@@ -3,7 +3,7 @@ import time
 import numpy as np
 import pyautogui
 
-from src.components.brightness import BrightnessControl
+from pica.components.brightness import BrightnessControl
 
 pyautogui.FAILSAFE = True
 

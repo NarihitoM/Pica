@@ -1,10 +1,6 @@
-data/annotations/*
-data/processed/*
-!data/annotations/.gitkeep
-!data/processed/.gitkeep
-
-models/*.pth
-!models/.gitkeep
+build/
+dist/
+*.egg-info/
 
 __pycache__/
 *.pyc

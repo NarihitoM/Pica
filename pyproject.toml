@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pica"
+version = "0.1.0"
+description = "Pica is the project that can control and manage your laptop or pc with the gestures."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "NarihitoM" }]
+keywords = ["gesture", "mediapipe", "computer-vision", "hand-tracking", "accessibility"]
+classifiers = [
+    "Environment :: X11 Applications",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Video :: Capture",
+]
+dependencies = [
+    "opencv-python",
+    "mediapipe",
+    "torch",
+    "pyautogui",
+    "pyyaml",
+    "numpy",
+]
+
+[project.urls]
+Homepage = "https://github.com/NarihitoM/Pica"
+Issues = "https://github.com/NarihitoM/Pica/issues"
+
+[project.scripts]
+pica = "pica.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["pica*"]
+
+[tool.setuptools.package-data]
+pica = ["default_config.yaml", "assets/*"]

@@ -1,17 +1,37 @@
 <p align="center">
-  <img src="src/assets/logo.jpg" alt="Pica logo" width="360">
+  <img src="pica/assets/logo.jpg" alt="Pica logo" width="360">
 </p>
 
 # Pica
 
-Control your PC with hand gestures. Python, MediaPipe hand tracking, and a small
-PyTorch classifier trained on your own recorded gestures.
+Pica is the project that can control and manage your laptop or pc with the gestures.
+Python, MediaPipe hand tracking, and a small PyTorch classifier trained on your own
+recorded gestures.
 
-## Setup
+## Install
 
 ```
-py -m pip install -r requirements.txt
+pip install pica
 ```
+
+## Quick start
+
+```
+pica collect     # record every gesture, one at a time
+pica train       # train the classifier on what you recorded
+pica run         # start controlling your PC
+```
+
+`pica collect` walks through each gesture in your config and waits for you to press
+Enter before recording it, so you can get your hand ready. Press `s` to skip one or
+`q` to stop. To redo a single gesture:
+
+```
+pica collect open_palm --replace
+```
+
+Recording appends by default, so `--replace` is what you want when a gesture went badly
+and you're re-recording it from scratch.
 
 ## Gestures
 
@@ -26,88 +46,104 @@ py -m pip install -r requirements.txt
 | `three_finger_up` | screen brightness up |
 | `three_finger_down` | screen brightness down |
 
-Brightness steps by `brightness.step` percent per gesture (default 10) and uses Windows
+Brightness steps by `brightness.step` percent per gesture (default 20) and uses Windows
 WMI, so it works on laptop displays.
 
-Edit `config/config.yaml` to remap gestures to actions, or add new ones (see below).
+## Your files
 
-## Usage
-
-### 1. Record gesture samples
-
-Open `notebooks/collection_data.ipynb`. Run the setup cells once, then in the last cell
-call `collect('<label>')` for one gesture at a time, e.g. `collect('open_palm')`, and
-run just that cell.
-
-A camera window opens with a live sample counter — hold the gesture steady while it
-records. Press `q` to stop early. Samples are saved to `data/annotations/<label>.npy`.
-
-### 2. Train the classifier
-
-Open `notebooks/training_model.ipynb` and Run All. It reads every `.npy` file in
-`data/annotations/`, normalizes the landmarks, trains a small MLP, and saves
-`models/gesture_classifier.pth`.
-
-### 3. Run it live
+Everything you create lives outside the package, so upgrading Pica never touches it:
 
 ```
-py main.py
+pica where
 ```
 
-Shows a debug window with your hand skeleton and the predicted gesture + confidence.
-Press `q` to quit.
+```
+home:        ~/.pica
+config:      ~/.pica/config.yaml
+recordings:  ~/.pica/annotations
+model:       ~/.pica/gesture_classifier.pth
+```
+
+Set `PICA_HOME` to keep several separate setups. The config is copied from the packaged
+default the first time you run anything, and is never overwritten after that.
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `pica run` | start gesture control (`q` in the window quits) |
+| `pica collect [gesture]` | record samples; loops through every configured gesture if you don't name one |
+| `pica train` | train on your recordings and save the model |
+| `pica where` | print where your config, recordings and model live |
+
+`pica collect` takes `--samples`, `--camera` and `--replace`. `pica train` takes
+`--epochs`, `--batch-size` and `--lr`.
 
 ## Adding a new gesture
 
-1. Add it to `config/config.yaml` under `gestures:` (or as `cursor.gesture` if it should
+1. Add it to `~/.pica/config.yaml` under `gestures:` (or as `cursor.gesture` if it should
    drive the mouse), mapped to an action.
 2. If the action doesn't exist yet, add it to `_run_action` in
-   `src/components/system_control/system_control.py`.
-3. Record samples: add `collect('<name>')` in `notebooks/collection_data.ipynb`.
-4. Retrain: run `notebooks/training_model.ipynb`.
+   `pica/components/system_control/system_control.py`.
+3. `pica collect <name>`
+4. `pica train`
 
 ## Project layout
 
 ```
 Pica/
-├── config/config.yaml       # gesture -> action map, camera id, confidence/cursor tuning
-├── main.py                   # entry point for the live app
-├── data/                     # recorded samples (gitignored)
-├── models/                   # trained classifier + MediaPipe model asset
-├── notebooks/                # data collection + training notebooks
-└── src/
-    ├── assets/logo.jpg        # project logo
-    ├── components/            # one folder per feature, each a package with a barrel export
-    │   ├── brightness/        # steps display brightness up/down (WMI)
-    │   ├── camera_stream/     # threaded webcam reader
-    │   ├── classifier/        # PyTorch MLP: landmarks -> gesture name + confidence
-    │   ├── hand_tracker/      # MediaPipe HandLandmarker wrapper
-    │   └── system_control/    # gesture -> cursor / click / volume / scroll
-    ├── pipeline/run_app.py   # wires camera -> tracker -> classifier -> system_control
-    └── utils/                 # landmark normalization, config loader, debug overlay
+├── main.py                       # entry point, same as the `pica` command
+├── pyproject.toml
+└── pica/
+    ├── cli.py                    # `pica run` / `collect` / `train` / `where`
+    ├── default_config.yaml       # seeded into ~/.pica/config.yaml on first run
+    ├── assets/                   # logo + the bundled MediaPipe hand model
+    ├── components/               # one folder per feature, each a package with a barrel export
+    │   ├── brightness/           # steps display brightness up/down (WMI)
+    │   ├── camera_stream/        # threaded webcam reader
+    │   ├── classifier/           # PyTorch MLP: landmarks -> gesture name + confidence
+    │   ├── hand_tracker/         # MediaPipe HandLandmarker wrapper
+    │   └── system_control/       # gesture -> cursor / drag / volume / scroll / brightness
+    ├── pipeline/
+    │   ├── collect.py            # records landmark samples for one gesture
+    │   ├── train.py              # recordings -> trained model
+    │   └── run_app.py            # camera -> tracker -> classifier -> system_control
+    └── utils/                    # landmark normalization, config loader, paths, overlay
 ```
 
 Each component folder exports its public class from `__init__.py`, so imports stay flat:
-`from src.components.hand_tracker import HandTracker`.
+`from pica.components.hand_tracker import HandTracker`.
+
+## Developing
+
+```
+git clone https://github.com/NarihitoM/Pica.git
+cd Pica
+pip install -e .
+```
+
+Every module has a `demo()` self-check you can run directly:
+
+```
+py -m pica.pipeline.train
+py -m pica.components.system_control.system_control
+py -m pica.cli --demo
+```
 
 ## Troubleshooting
 
-- **Camera window doesn't appear / notebook kernel hangs while recording**: OpenCV's
-  window backend can be unreliable inside a Jupyter kernel on Windows. If it hangs,
-  interrupt won't always work — find and kill the stuck `ipykernel_launcher` process,
-  then restart the kernel and try again.
-- **`FileNotFoundError` for `gesture_classifier.pth`**: you haven't trained yet — run
-  step 2 above.
+- **`pica run` says there's no trained model**: run `pica collect` then `pica train`.
+- **A newly recorded gesture doesn't do anything**: recording only saves samples --
+  it does not update the live model. Run `pica train` after recording.
+- **Cursor lags behind your hand**: MediaPipe inference is ~55ms per frame on CPU, which
+  caps the loop near 18fps. Lowering `cursor.smoothing` helps a little; the rest is the
+  model.
 - **Cursor jumps when clicking**: the cursor gesture tracks the wrist (stable), not a
-  fingertip (moves as fingers curl) — if you change `cursor.landmark_index`, keep this
+  fingertip (moves as fingers curl) -- if you change `cursor.landmark_index`, keep this
   in mind.
-- **A newly recorded gesture doesn't do anything**: recording only saves raw samples to
-  `data/annotations/` — it does not update the live model. Re-run step 2 (training)
-  after recording any new gesture, or old/missing gestures will silently not fire.
 - **A gesture works in testing but misfires live**: the model likely overfit to one
-  distance/angle/lighting setup. When recording, move your hand around a bit (distance,
-  slight rotation) while holding the pose instead of staying perfectly still, so the
-  model generalizes better.
+  distance/angle/lighting setup. When recording, move your hand around a bit while
+  holding the pose instead of staying perfectly still.
 - **Similar gestures get confused** (e.g. one finger vs two fingers): make sure the
-  poses are clearly distinct when recording — ambiguous hand shapes will bleed into
+  poses are clearly distinct when recording -- ambiguous hand shapes will bleed into
   each other no matter how much data you add.

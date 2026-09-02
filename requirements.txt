@@ -1,6 +1,0 @@
-opencv-python
-mediapipe
-torch
-pyautogui
-pyyaml
-numpy

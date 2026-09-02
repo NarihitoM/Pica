@@ -1,10 +1,11 @@
-from pathlib import Path
 
 import cv2
 import numpy as np
 
+from pica.utils.paths import LOGO
+
 _LOGO_HEIGHT = 40
-_logo = cv2.imread(str(Path(__file__).resolve().parents[1] / "assets" / "logo.jpg"))
+_logo = cv2.imread(str(LOGO))
 if _logo is not None:
     scale = _LOGO_HEIGHT / _logo.shape[0]
     _logo = cv2.resize(_logo, (int(_logo.shape[1] * scale), _LOGO_HEIGHT))
