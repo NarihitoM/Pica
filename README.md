@@ -13,15 +13,6 @@ PyTorch classifier trained on your own recorded gestures.
 py -m pip install -r requirements.txt
 ```
 
-Notebook outputs and execution counts are stripped on commit so re-running cells doesn't
-create diffs. Git filters aren't cloned, so run this once per clone:
-
-```
-git config filter.nbclean.clean "py scripts/nbclean.py"
-git config filter.nbclean.smudge cat
-git config filter.nbclean.required true
-```
-
 ## Gestures
 
 | Gesture | Action |
