@@ -40,7 +40,6 @@ class CameraStream:
 
 
 def demo():
-    # smoke check: bad camera id must raise, not hang
     try:
         CameraStream(camera_id=9999)
         raise AssertionError("expected RuntimeError for invalid camera id")

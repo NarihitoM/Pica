@@ -1,5 +1,4 @@
 camera_id: 0
-privacy_blur: false  # blur face + background in the debug window -- costs performance, enable only when recording
 confidence_threshold: 0.75
 
 # gesture name -> action name (handled in src/components/system_control.py)
@@ -20,5 +19,12 @@ scroll:
   up_gesture: two_finger_up
   down_gesture: two_finger_down
   amount: 40
+
+# pinch with BOTH hands to control screen brightness -- distance between them sets the level
+brightness:
+  gesture: pinch      # both hands must show this gesture before brightness reacts
+  min_distance: 0.15  # hands this close -> dimmest
+  max_distance: 0.6   # hands this far apart -> brightest
+  step: 5             # ignore level changes smaller than this
 
 action_cooldown_seconds: 0.6

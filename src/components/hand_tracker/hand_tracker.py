@@ -5,13 +5,13 @@ import mediapipe as mp
 from mediapipe.tasks.python import vision
 from mediapipe.tasks.python.core.base_options import BaseOptions
 
-MODEL_PATH = str(Path(__file__).resolve().parents[2] / "models" / "mediapipe" / "hand_landmarker.task")
+MODEL_PATH = str(Path(__file__).resolve().parents[3] / "models" / "mediapipe" / "hand_landmarker.task")
 
 
 class HandTracker:
     """Wraps MediaPipe's HandLandmarker (Tasks API): frame in -> list of (21, 3) landmark arrays out."""
 
-    def __init__(self, max_hands: int = 1, min_detection_confidence: float = 0.4, model_path: str = MODEL_PATH):
+    def __init__(self, max_hands: int = 2, min_detection_confidence: float = 0.4, model_path: str = MODEL_PATH):
         options = vision.HandLandmarkerOptions(
             base_options=BaseOptions(model_asset_path=model_path),
             running_mode=vision.RunningMode.VIDEO,

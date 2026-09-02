@@ -23,6 +23,13 @@ py -m pip install -r requirements.txt
 | `one_finger_down` | volume down |
 | `two_finger_up` | scroll up (continuous while held) |
 | `two_finger_down` | scroll down (continuous while held) |
+| `pinch` (both hands) | screen brightness — move your hands apart to brighten, together to dim |
+
+Brightness is the only two-handed gesture: both hands must be recognised as `pinch` at
+the same time before it reacts, so it never fires by accident while you're using the
+cursor. Record `pinch` one hand at a time like every other gesture — the classifier only
+ever sees a single hand, and the app checks that both came back as `pinch`.
+Brightness uses Windows WMI, so it works on laptop displays.
 
 Edit `config/config.yaml` to remap gestures to actions, or add new ones (see below).
 
@@ -30,7 +37,7 @@ Edit `config/config.yaml` to remap gestures to actions, or add new ones (see bel
 
 ### 1. Record gesture samples
 
-Open `notebooks/01_collect_data.ipynb`. Run the setup cells once, then in the last cell
+Open `notebooks/collection_data.ipynb`. Run the setup cells once, then in the last cell
 call `collect('<label>')` for one gesture at a time, e.g. `collect('open_palm')`, and
 run just that cell.
 
@@ -39,7 +46,7 @@ records. Press `q` to stop early. Samples are saved to `data/annotations/<label>
 
 ### 2. Train the classifier
 
-Open `notebooks/02_train_model.ipynb` and Run All. It reads every `.npy` file in
+Open `notebooks/training_model.ipynb` and Run All. It reads every `.npy` file in
 `data/annotations/`, normalizes the landmarks, trains a small MLP, and saves
 `models/gesture_classifier.pth`.
 
@@ -57,9 +64,9 @@ Press `q` to quit.
 1. Add it to `config/config.yaml` under `gestures:` (or as `cursor.gesture` if it should
    drive the mouse), mapped to an action.
 2. If the action doesn't exist yet, add it to `_run_action` in
-   `src/components/system_control.py`.
-3. Record samples: add `collect('<name>')` in `notebooks/01_collect_data.ipynb`.
-4. Retrain: run `notebooks/02_train_model.ipynb`.
+   `src/components/system_control/system_control.py`.
+3. Record samples: add `collect('<name>')` in `notebooks/collection_data.ipynb`.
+4. Retrain: run `notebooks/training_model.ipynb`.
 
 ## Project layout
 
@@ -72,10 +79,18 @@ Pica/
 ├── notebooks/                # data collection + training notebooks
 └── src/
     ├── assets/logo.jpg        # project logo
-    ├── components/           # camera_stream, hand_tracker, classifier, system_control
+    ├── components/            # one folder per feature, each a package with a barrel export
+    │   ├── brightness/        # two-hand pinch distance -> display brightness (WMI)
+    │   ├── camera_stream/     # threaded webcam reader
+    │   ├── classifier/        # PyTorch MLP: landmarks -> gesture name + confidence
+    │   ├── hand_tracker/      # MediaPipe HandLandmarker wrapper
+    │   └── system_control/    # gesture -> cursor / click / volume / scroll
     ├── pipeline/run_app.py   # wires camera -> tracker -> classifier -> system_control
     └── utils/                 # landmark normalization, config loader, debug overlay
 ```
+
+Each component folder exports its public class from `__init__.py`, so imports stay flat:
+`from src.components.hand_tracker import HandTracker`.
 
 ## Troubleshooting
 

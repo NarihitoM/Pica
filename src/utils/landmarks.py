@@ -2,7 +2,12 @@ import numpy as np
 
 
 def normalize(landmarks: np.ndarray) -> np.ndarray:
-    """Translate to wrist origin, scale by hand size. (21, 3) -> (21, 3)."""
+    """Translate to wrist origin, scale by hand size. (21, 3) -> (21, 3).
+
+    Makes the classifier see the same shape no matter where the hand sits in frame
+    or how far it is from the camera. Used by both training and live inference --
+    they must normalize identically or predictions drift.
+    """
     wrist = landmarks[0]
     centered = landmarks - wrist
     scale = np.linalg.norm(centered).clip(min=1e-6)
