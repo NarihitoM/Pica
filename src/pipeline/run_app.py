@@ -29,6 +29,7 @@ def run():
             hands = tracker.process_with_handedness(frame)
 
             gesture, confidence = None, None
+            active, active_landmarks = None, None
             if hands:
                 landmarks, handedness = hands[0]
                 class_landmarks = landmarks.copy()
@@ -40,7 +41,9 @@ def run():
 
                 gate = cursor_threshold if gesture == cursor_gesture else threshold
                 if confidence >= gate:
-                    control.handle(gesture, landmarks)
+                    active, active_landmarks = gesture, landmarks
+
+            control.handle(active, active_landmarks)
 
             draw_status(frame, gesture, confidence)
             cv2.imshow("Pica", frame)

@@ -26,12 +26,27 @@ class SystemControl:
         self._last_fired: dict[str, float] = {}
         self._screen_w, self._screen_h = pyautogui.size()
         self._smoothed_pos: tuple[float, float] | None = None
+        self._dragging = False
         self._brightness = BrightnessControl(step=self.brightness_cfg.get("step", 10))
 
     def close(self):
+        self._end_drag()
         self._brightness.stop()
 
-    def handle(self, gesture: str, landmarks: np.ndarray):
+    def handle(self, gesture: str | None, landmarks: np.ndarray | None):
+        if self.gesture_actions.get(gesture) == "left_drag":
+            if not self._dragging:
+                pyautogui.mouseDown()
+                self._dragging = True
+            if landmarks is not None:
+                self._move_cursor(landmarks)
+            return
+
+        self._end_drag()
+
+        if gesture is None or landmarks is None:
+            return
+
         if gesture == self.cursor_cfg.get("gesture"):
             self._move_cursor(landmarks)
             return
@@ -50,6 +65,11 @@ class SystemControl:
             return
         self._run_action(action)
         self._last_fired[gesture] = time.time()
+
+    def _end_drag(self):
+        if self._dragging:
+            pyautogui.mouseUp()
+            self._dragging = False
 
     def _ready(self, gesture: str) -> bool:
         last = self._last_fired.get(gesture, 0.0)
@@ -97,7 +117,7 @@ class SystemControl:
 
 def demo():
     cfg = {
-        "gestures": {"close_palm": "left_click"},
+        "gestures": {"close_palm": "left_drag"},
         "cursor": {"gesture": "open_palm", "landmark_index": 0, "smoothing": 0.3, "margin": 0.2},
         "brightness": {"step": 10},
         "action_cooldown_seconds": 1.0,
