@@ -1,7 +1,5 @@
-data/raw/*
 data/annotations/*
 data/processed/*
-!data/raw/.gitkeep
 !data/annotations/.gitkeep
 !data/processed/.gitkeep
 
