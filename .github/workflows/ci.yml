@@ -19,7 +19,7 @@ jobs:
       - run: pip install mypy
 
       - name: Type check
-        run: mypy pica
+        run: mypy src/pica
 
   build:
     runs-on: ubuntu-latest

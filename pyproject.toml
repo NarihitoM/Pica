@@ -41,6 +41,7 @@ Issues = "https://github.com/NarihitoM/Pica/issues"
 narihito-pica = "pica.cli:main"
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["pica*"]
 
 [tool.setuptools.package-data]

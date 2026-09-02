@@ -105,23 +105,27 @@ default the first time you run anything, and is never overwritten after that.
 
 ```
 Pica/
-├── main.py                       # entry point, same as the `narihito-pica` command
+├── .github/workflows/            # CI (type check + build) and PyPI publish
+├── LICENSE
+├── README.md
 ├── pyproject.toml
-└── pica/
-    ├── cli.py                    # `narihito-pica run` / `collect` / `train` / `where`
-    ├── default_config.yaml       # seeded into ~/.pica/config.yaml on first run
-    ├── assets/                   # logo + the bundled MediaPipe hand model
-    ├── components/               # one folder per feature, each a package with a barrel export
-    │   ├── brightness/           # steps display brightness up/down (WMI)
-    │   ├── camera_stream/        # threaded webcam reader
-    │   ├── classifier/           # PyTorch MLP: landmarks -> gesture name + confidence
-    │   ├── hand_tracker/         # MediaPipe HandLandmarker wrapper
-    │   └── system_control/       # gesture -> cursor / drag / volume / scroll / brightness
-    ├── pipeline/
-    │   ├── collect.py            # records landmark samples for one gesture
-    │   ├── train.py              # recordings -> trained model
-    │   └── run_app.py            # camera -> tracker -> classifier -> system_control
-    └── utils/                    # landmark normalization, config loader, paths, overlay
+└── src/
+    └── pica/
+        ├── __main__.py           # `python -m pica`
+        ├── cli.py                # `narihito-pica run` / `collect` / `train` / `where`
+        ├── default_config.yaml   # seeded into ~/.pica/config.yaml on first run
+        ├── assets/               # logo + the bundled MediaPipe hand model
+        ├── components/           # one folder per feature, each a package with a barrel export
+        │   ├── brightness/       # steps display brightness up/down (WMI)
+        │   ├── camera_stream/    # threaded webcam reader
+        │   ├── classifier/       # PyTorch MLP: landmarks -> gesture name + confidence
+        │   ├── hand_tracker/     # MediaPipe HandLandmarker wrapper
+        │   └── system_control/   # gesture -> cursor / drag / volume / scroll / brightness
+        ├── pipeline/
+        │   ├── collect.py        # records landmark samples for one gesture
+        │   ├── train.py          # recordings -> trained model
+        │   └── run_app.py        # camera -> tracker -> classifier -> system_control
+        └── utils/                # landmark normalization, config loader, paths, overlay
 ```
 
 Each component folder exports its public class from `__init__.py`, so imports stay flat:
@@ -138,9 +142,9 @@ pip install -e .
 Every module has a `demo()` self-check you can run directly:
 
 ```
-py -m pica.pipeline.train
-py -m pica.components.system_control.system_control
-py -m pica.cli --demo
+python -m pica.pipeline.train
+python -m pica.components.system_control.system_control
+python -m pica.cli --demo
 ```
 
 ## Releasing
