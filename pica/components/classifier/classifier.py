@@ -40,9 +40,8 @@ class GestureClassifier:
 
     @torch.no_grad()
     def predict(self, landmarks: np.ndarray) -> tuple[str, float]:
-        x = flatten(normalize(landmarks))
-        x = torch.from_numpy(x).float().unsqueeze(0)
-        logits = self.model(x)
+        flat = flatten(normalize(landmarks))
+        logits = self.model(torch.from_numpy(flat).float().unsqueeze(0))
         probs = torch.softmax(logits, dim=1)[0]
         idx = int(torch.argmax(probs))
         return self.labels[idx], float(probs[idx])

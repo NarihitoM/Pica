@@ -13,7 +13,7 @@ def collect(label: str, num_samples: int = 200, camera_id: int = 0, append: bool
         tracker.close()
         raise RuntimeError(f"could not open camera {camera_id}")
 
-    samples = []
+    samples: list[np.ndarray] = []
     try:
         while len(samples) < num_samples:
             ok, frame = cap.read()

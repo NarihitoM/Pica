@@ -45,3 +45,6 @@ include = ["pica*"]
 
 [tool.setuptools.package-data]
 pica = ["default_config.yaml", "assets/*"]
+
+[tool.mypy]
+ignore_missing_imports = true

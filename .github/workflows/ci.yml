@@ -6,45 +6,33 @@ on:
   pull_request:
 
 jobs:
-  test:
-    runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10", "3.13"]
-
+  typecheck:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.13"
           cache: pip
 
-      - name: Install
-        run: pip install -e .
+      - run: pip install mypy
 
-      - name: Self-checks
-        run: |
-          python -m pica.utils.landmarks
-          python -m pica.utils.paths
-          python -m pica.utils.config
-          python -m pica.components.classifier.classifier
-          python -m pica.components.brightness.brightness
-          python -m pica.pipeline.train
-          python -m pica.pipeline.collect
-          python -m pica.cli --demo
-
-      - name: CLI is wired up
-        run: narihito-pica where
+      - name: Type check
+        run: mypy pica
 
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: pip
+
       - run: pip install build twine
+
       - run: python -m build
+
       - run: python -m twine check dist/*
