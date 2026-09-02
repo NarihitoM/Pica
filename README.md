@@ -132,14 +132,14 @@ py -m pica.cli --demo
 
 ## Releasing
 
-CI runs the self-checks on every push. Publishing happens on a GitHub release:
+CI runs the self-checks on every push. Publishing is automatic:
 
 1. Bump `version` in `pyproject.toml`.
-2. Commit and push.
-3. Create a GitHub release tagged `v<version>` (e.g. `v0.2.0`).
+2. Commit and push to `main`.
 
-The publish workflow checks the tag matches `pyproject.toml`, builds, and uploads to
-PyPI via Trusted Publishing -- no API token stored anywhere.
+That's it. The publish workflow wakes up whenever `pyproject.toml` changes, skips if that
+version is already on PyPI, and otherwise builds, uploads via Trusted Publishing (no API
+token stored anywhere), and tags the commit `v<version>`.
 
 ## Troubleshooting
 
