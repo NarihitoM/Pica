@@ -157,17 +157,6 @@ python -m pica.components.system_control.system_control
 python -m pica.cli --demo
 ```
 
-## Releasing
-
-CI type checks, runs the tests and builds the package on every push. Publishing is automatic:
-
-1. Bump `version` in `pyproject.toml`.
-2. Commit and push to `main`.
-
-That's it. The publish workflow wakes up whenever `pyproject.toml` changes, skips if that
-version is already on PyPI, and otherwise builds, uploads via Trusted Publishing (no API
-token stored anywhere), and tags the commit `v<version>`.
-
 ## Troubleshooting
 
 - **`narihito-pica run` says there's no trained model**: run `narihito-pica collect` then `narihito-pica train`.
