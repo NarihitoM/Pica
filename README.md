@@ -157,6 +157,41 @@ python -m pica.components.system_control.system_control
 python -m pica.cli --demo
 ```
 
+## What's new
+
+### 0.4.1
+
+- Packaging fix only. The logo and project links on the PyPI page were pointing at paths
+  that stopped existing when the package moved to a `src/` layout.
+
+### 0.4.0 -- guided recording
+
+- `collect` now draws the instructions onto the camera feed: which pose to hold, whether
+  it is actually being recorded, a progress bar, and the gesture coming up next. Before
+  this the window was a bare webcam feed and you had to read the terminal to know what
+  Pica wanted from you.
+- The hand skeleton is drawn while recording, so you can see the moment tracking drops
+  out instead of discovering a bad sample set at training time.
+
+### 0.3.0 -- know what you trained
+
+- `train` reports per-gesture sample counts and per-gesture accuracy. A gesture that
+  misfires live is nearly always one with far fewer samples than the rest, or one the
+  model confuses with its neighbour -- both are now visible before you run anything.
+- Moved to a `src/` layout so the installed package is what gets imported, not whatever
+  happens to sit in the working directory.
+
+### 0.2.0 -- stable command name
+
+- The console script became `narihito-pica`, matching the distribution name on PyPI.
+
+### 0.1.0 -- first release
+
+- Installable from PyPI, with `collect` / `train` / `run` / `where` subcommands.
+- Recordings, config and the trained model live in `~/.pica`, outside the installed
+  package, so an upgrade never touches your data and a reinstall never loses it.
+  `PICA_HOME` overrides the location if you want to keep more than one set.
+
 ## Troubleshooting
 
 - **`narihito-pica run` says there's no trained model**: run `narihito-pica collect` then `narihito-pica train`.
