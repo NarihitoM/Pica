@@ -124,7 +124,9 @@ class SystemControl:
         pyautogui.moveTo(*self._smoothed_pos, _pause=False)
 
     def _run_action(self, action: str):
-        if action == "left_click":
+        if action.startswith("hotkey:"):
+            pyautogui.hotkey(*action.removeprefix("hotkey:").split(","))
+        elif action == "left_click":
             pyautogui.click()
         elif action == "brightness_up":
             self._brightness.up()
@@ -154,6 +156,14 @@ def demo():
     assert control._brightness._level == 60
     control._run_action("brightness_down")
     assert control._brightness._level == 50
+
+    pressed = []
+    real_hotkey, pyautogui.hotkey = pyautogui.hotkey, lambda *keys: pressed.append(keys)
+    try:
+        control._run_action("hotkey:ctrl,win,right")
+    finally:
+        pyautogui.hotkey = real_hotkey
+    assert pressed == [("ctrl", "win", "right")], pressed
 
     control.close()
     print("system_control demo OK")

@@ -75,6 +75,9 @@ Anything much below the others is the gesture to re-record.
 | `two_finger_down` | scroll down |
 | `three_finger_up` | brightness up |
 | `three_finger_down` | brightness down |
+| `four_finger_up` | next virtual desktop |
+| `four_finger_down` | previous virtual desktop |
+| both palms open | show or hide the on-screen keyboard |
 
 Brightness moves by `brightness.step` percent each time (20 by default) and goes through
 Windows WMI, so it works on laptop screens.
@@ -83,6 +86,18 @@ Windows WMI, so it works on laptop screens.
 past two seconds and Pica presses the button down and holds it, so you can pick a window
 up and move it around. Open your hand to drop it. Change the wait with
 `drag_hold_seconds` in your config if two seconds feels wrong.
+
+Holding both palms open is its own gesture, separate from one open palm. That matters
+because a five finger pose is exactly what `open_palm` already is, so the two could never
+be told apart by shape. Pica counts hands instead: one palm drives the cursor, two palms
+toggle the keyboard, and neither can be mistaken for the other.
+
+Once the keyboard is up you type with the gestures you already have. Point at a key with
+one open palm, close and open your hand to press it. Windows' on-screen keyboard sends
+the character to whatever window you were in, so the letters land in your app rather than
+in the keyboard. Clicks aren't rate limited, so this runs about as fast as you can open
+and close your hand — fine for a URL or a password, not for writing an essay. Both palms
+again puts the keyboard away.
 
 If you use Pica in a dim room, night mode lifts the frame before it reaches the tracker.
 It's on automatic by default and only kicks in when the picture is actually dark, so a
@@ -129,6 +144,14 @@ one setup side by side.
    `src/pica/components/system_control/system_control.py`.
 3. `narihito-pica collect <name>`
 4. `narihito-pica train`
+
+Most things you'd want don't need step 2. Map the gesture to `hotkey:` and a key combo
+and it just works — `hotkey:ctrl,shift,t` reopens a closed tab, `hotkey:win,d` shows the
+desktop, `hotkey:ctrl,z` undoes. Keys are pyautogui names, separated by commas.
+
+You can also prefix any gesture with `two_hand_` to mean both hands holding it at once,
+the way `two_hand_open_palm` does. There's nothing to record for those — Pica builds them
+from the pose you already trained, so skip step 3.
 
 Step 4 is the one people forget. Recording only writes samples to disk, it doesn't touch
 the model you're running.
@@ -191,6 +214,22 @@ python -m pica.cli --demo
 ```
 
 ## What's new
+
+### 0.6.0 - four fingers, two hands, and a keyboard
+
+Four fingers up and down switch virtual desktop. Both palms open show and hide the
+on-screen keyboard, and once it's up you type with what Pica already had: point at a key
+with one open palm, close and open your hand to press it.
+
+Two hands is a real gesture now, not just a pose. It had to be. A five finger shape *is*
+`open_palm`, the gesture that drives the cursor, so no amount of training could tell the
+two apart. Pica counts hands instead of guessing at shape, so one palm moves the cursor
+and two palms don't, and neither can be mistaken for the other. Any gesture works this
+way, with a `two_hand_` prefix, and there's nothing extra to record.
+
+Actions can be key combos now. Write `hotkey:ctrl,shift,t` in your config and that gesture
+reopens a closed tab. Zoom, undo, show desktop, media keys, whatever your keyboard does,
+without touching the code.
 
 ### 0.5.0 - click or drag, and a night mode
 

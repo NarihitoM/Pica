@@ -35,17 +35,24 @@ def run():
             gesture, confidence = None, None
             active, active_landmarks = None, None
             if hands:
-                landmarks, handedness = hands[0]
-                class_landmarks = landmarks.copy()
-                if handedness == "Left":
-                    class_landmarks[:, 0] = 1.0 - class_landmarks[:, 0]
+                predictions = []
+                for landmarks, handedness in hands:
+                    class_landmarks = landmarks.copy()
+                    if handedness == "Left":
+                        class_landmarks[:, 0] = 1.0 - class_landmarks[:, 0]
+                    predictions.append(classifier.predict(class_landmarks))
+                    draw_landmarks(frame, landmarks)
 
-                gesture, confidence = classifier.predict(class_landmarks)
-                draw_landmarks(frame, landmarks)
+                gesture, confidence = predictions[0]
+                # both hands holding the same pose is its own gesture -- that's what keeps
+                # two open palms off the cursor, which one open palm drives
+                if len(predictions) == 2 and predictions[1][0] == gesture:
+                    gesture = f"two_hand_{gesture}"
+                    confidence = min(confidence, predictions[1][1])
 
                 gate = cursor_threshold if gesture == cursor_gesture else threshold
                 if confidence >= gate:
-                    active, active_landmarks = gesture, landmarks
+                    active, active_landmarks = gesture, hands[0][0]
 
             control.handle(active, active_landmarks)
 

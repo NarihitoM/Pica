@@ -18,7 +18,9 @@ def gesture_names() -> list[str]:
     names.extend(config.get("gestures", {}))
     scroll = config.get("scroll", {})
     names.extend(n for n in (scroll.get("up_gesture"), scroll.get("down_gesture")) if n)
-    return list(dict.fromkeys(names))
+    # two_hand_* is composed at runtime from two hands doing the same pose, so there's
+    # nothing to record for it
+    return [n for n in dict.fromkeys(names) if not n.startswith("two_hand_")]
 
 
 def cmd_run(args):

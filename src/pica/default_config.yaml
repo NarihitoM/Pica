@@ -8,12 +8,18 @@ night_mode:
   darkness_threshold: 60  # mean pixel value below which a frame counts as dark
 
 # gesture name -> action name (handled in src/components/system_control.py)
+# hotkey:a,b,c presses a key combo instead, using pyautogui key names -- so a new
+# binding is an edit here rather than a code change
+# a two_hand_ prefix means both hands holding that gesture at once
 gestures:
   close_palm: left_drag
   one_finger_up: volume_up
   one_finger_down: volume_down
   three_finger_up: brightness_up
   three_finger_down: brightness_down
+  four_finger_up: hotkey:ctrl,win,right
+  four_finger_down: hotkey:ctrl,win,left
+  two_hand_open_palm: hotkey:win,ctrl,o   # windows on-screen keyboard, click the keys with close_palm
 
 cursor:
   gesture: open_palm       # gesture name that drives cursor movement
