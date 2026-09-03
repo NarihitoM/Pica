@@ -224,6 +224,18 @@ python -m pica.cli --demo
 
 ## What's new
 
+### 0.7.0 - your config keeps up, and empty recordings stop hiding
+
+Your config is copied once and never overwritten, which keeps your tuning safe but meant a
+gesture added in a later release stayed invisible until you edited the file by hand. Pica
+now fills in only the keys you're missing and leaves every value you chose alone. To turn
+a default binding off, set it to `null` rather than deleting the line, or it comes back.
+
+`collect` counted a gesture as recorded if the file existed. A capture that grabbed no
+frames still writes one, so a gesture with zero samples looked done and was quietly
+skipped -- which is a good way to end up with no click gesture and no idea why. It counts
+samples now, and treats empty or unreadable files as unrecorded.
+
 ### 0.6.1 - collect remembers what you recorded
 
 A bare `narihito-pica collect` used to walk you through every gesture in your config,

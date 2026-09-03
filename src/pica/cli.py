@@ -31,10 +31,27 @@ def cmd_run(args):
     run()
 
 
+def sample_count(label: str) -> int:
+    """How many samples are actually recorded for a gesture, 0 if there's no usable file."""
+    import numpy as np
+
+    path = annotations_dir() / f"{label}.npy"
+    if not path.exists():
+        return 0
+    try:
+        return int(np.load(path, mmap_mode="r").shape[0])
+    except (ValueError, OSError):
+        return 0
+
+
 def pending_gestures(labels: list[str]) -> list[str]:
-    """The ones with nothing on disk yet, so a bare `collect` picks up where it left off
-    instead of walking you back through poses you already recorded."""
-    return [n for n in labels if not (annotations_dir() / f"{n}.npy").exists()]
+    """The ones with no samples yet, so a bare `collect` picks up where it left off
+    instead of walking you back through poses you already recorded.
+
+    An empty file counts as unrecorded. A run that captured nothing still leaves one
+    behind, and treating it as done would quietly hide a gesture that can never work.
+    """
+    return [n for n in labels if sample_count(n) == 0]
 
 
 def cmd_collect(args):
@@ -144,10 +161,16 @@ def demo():
     previous_home = os.environ.get("PICA_HOME")
     with tempfile.TemporaryDirectory() as tmp:
         os.environ["PICA_HOME"] = tmp
+        import numpy as np
+
         assert pending_gestures(["open_palm", "close_palm"]) == ["open_palm", "close_palm"]
-        (annotations_dir() / "open_palm.npy").write_bytes(b"")
+        np.save(annotations_dir() / "open_palm.npy", np.zeros((5, 21, 3), dtype=np.float32))
         assert pending_gestures(["open_palm", "close_palm"]) == ["close_palm"], "recorded gestures must be skipped"
-        (annotations_dir() / "close_palm.npy").write_bytes(b"")
+        np.save(annotations_dir() / "close_palm.npy", np.zeros((0, 21, 3), dtype=np.float32))
+        assert pending_gestures(["open_palm", "close_palm"]) == ["close_palm"], "an empty recording is not recorded"
+        (annotations_dir() / "close_palm.npy").write_bytes(b"not a npy file")
+        assert pending_gestures(["open_palm", "close_palm"]) == ["close_palm"], "an unreadable recording is not recorded"
+        np.save(annotations_dir() / "close_palm.npy", np.zeros((5, 21, 3), dtype=np.float32))
         assert pending_gestures(["open_palm", "close_palm"]) == []
     if previous_home is None:
         os.environ.pop("PICA_HOME", None)

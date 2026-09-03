@@ -9,6 +9,20 @@ from pica.utils.config import load_config
 from pica.utils.visualizer import draw_landmarks, draw_status
 
 
+def combine(predictions: list[tuple[str, float]]) -> tuple[str, float]:
+    """Folds one prediction per hand into the gesture actually being held.
+
+    Both hands on the same pose is its own gesture, and that is what keeps two open palms
+    off the cursor that one open palm drives -- the two are told apart by how many hands
+    are in frame, never by shape, because the shape is identical. Confidence is the weaker
+    of the two, so a shaky second hand can't wave the pair through.
+    """
+    gesture, confidence = predictions[0]
+    if len(predictions) == 2 and predictions[1][0] == gesture:
+        return f"two_hand_{gesture}", min(confidence, predictions[1][1])
+    return gesture, confidence
+
+
 def run():
     config = load_config()
     threshold = config.get("confidence_threshold", 0.75)
@@ -43,12 +57,7 @@ def run():
                     predictions.append(classifier.predict(class_landmarks))
                     draw_landmarks(frame, landmarks)
 
-                gesture, confidence = predictions[0]
-                # both hands holding the same pose is its own gesture -- that's what keeps
-                # two open palms off the cursor, which one open palm drives
-                if len(predictions) == 2 and predictions[1][0] == gesture:
-                    gesture = f"two_hand_{gesture}"
-                    confidence = min(confidence, predictions[1][1])
+                gesture, confidence = combine(predictions)
 
                 gate = cursor_threshold if gesture == cursor_gesture else threshold
                 if confidence >= gate:
