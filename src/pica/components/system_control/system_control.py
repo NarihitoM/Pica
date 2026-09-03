@@ -27,22 +27,28 @@ class SystemControl:
         self._screen_w, self._screen_h = pyautogui.size()
         self._smoothed_pos: tuple[float, float] | None = None
         self._dragging = False
+        self._hold_started: float | None = None
+        self.drag_hold = config.get("drag_hold_seconds", 2.0)
+        self.click_min_hold = config.get("click_min_hold_seconds", 0.1)
         self._brightness = BrightnessControl(step=self.brightness_cfg.get("step", 10))
 
     def close(self):
+        self._hold_started = None
         self._end_drag()
         self._brightness.stop()
 
     def handle(self, gesture: str | None, landmarks: np.ndarray | None):
         if self.gesture_actions.get(gesture) == "left_drag":
-            if not self._dragging:
+            if self._hold_started is None:
+                self._hold_started = time.time()
+            if not self._dragging and time.time() - self._hold_started >= self.drag_hold:
                 pyautogui.mouseDown()
                 self._dragging = True
-            if landmarks is not None:
+            if self._dragging and landmarks is not None:
                 self._move_cursor(landmarks)
             return
 
-        self._end_drag()
+        self._release_hold()
 
         if gesture is None or landmarks is None:
             return
@@ -65,6 +71,19 @@ class SystemControl:
             return
         self._run_action(action)
         self._last_fired[gesture] = time.time()
+
+    def _release_hold(self):
+        """A short hold is a click, a long one was already a drag. Deciding on release is
+        what lets the same gesture do both without a separate click gesture."""
+        if self._hold_started is None:
+            return
+
+        held = time.time() - self._hold_started
+        self._hold_started = None
+        if self._dragging:
+            self._end_drag()
+        elif held >= self.click_min_hold:
+            pyautogui.click()
 
     def _end_drag(self):
         if self._dragging:

@@ -68,7 +68,7 @@ Anything much below the others is the gesture to re-record.
 | Gesture | Action |
 |---|---|
 | `open_palm` | move the cursor (tracks your wrist) |
-| `close_palm` | hold to drag, quick close to click |
+| `close_palm` | quick close to click, hold 2s to grab and drag |
 | `one_finger_up` | volume up |
 | `one_finger_down` | volume down |
 | `two_finger_up` | scroll up (keeps going while held) |
@@ -79,9 +79,15 @@ Anything much below the others is the gesture to re-record.
 Brightness moves by `brightness.step` percent each time (20 by default) and goes through
 Windows WMI, so it works on laptop screens.
 
-Drag is worth calling out: hold `close_palm` and the mouse button stays down, so you can
-actually pick a window up and move it. Let go and it releases. A quick open-close reads as
-a plain click.
+`close_palm` does double duty. Close and open again and you get a click. Keep it closed
+past two seconds and Pica presses the button down and holds it, so you can pick a window
+up and move it around. Open your hand to drop it. Change the wait with
+`drag_hold_seconds` in your config if two seconds feels wrong.
+
+If you use Pica in a dim room, night mode lifts the frame before it reaches the tracker.
+It's on automatic by default and only kicks in when the picture is actually dark, so a
+well lit room costs you nothing. Force it either way with `night_mode.mode` set to `on`
+or `off`.
 
 ## Your files
 
@@ -185,6 +191,19 @@ python -m pica.cli --demo
 ```
 
 ## What's new
+
+### 0.5.0 - click or drag, and a night mode
+
+`close_palm` used to grab the mouse button the instant it was recognised, which meant
+every click was really a tiny drag. Now Pica waits: let go inside two seconds and it's a
+click, keep holding and it starts a drag. One gesture, both jobs, and no more windows
+sliding a few pixels every time you click something. `drag_hold_seconds` moves the line if
+two seconds isn't your taste.
+
+Night mode is new. In a dark room MediaPipe loses the hand well before you'd think the
+picture is too dark to see. Pica now checks how dark the frame is and equalizes lightness
+before tracking, in LAB so skin tone doesn't wash out the way it does with a plain
+brightness gain. It's automatic and only runs on frames that need it.
 
 ### 0.4.2
 

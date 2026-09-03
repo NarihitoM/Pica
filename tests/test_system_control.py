@@ -11,6 +11,8 @@ CONFIG = {
     "scroll": {"up_gesture": "three_finger_up", "down_gesture": "three_finger_down", "amount": 100},
     "brightness": {"step": 20},
     "action_cooldown_seconds": 0.6,
+    "drag_hold_seconds": 2.0,
+    "click_min_hold_seconds": 0.1,
 }
 
 
@@ -59,31 +61,81 @@ class TestCursor(ControlTestCase):
         self.assertGreater(x, 5.0, "but it must still move toward it")
 
 
-class TestDrag(ControlTestCase):
-    def test_holding_the_gesture_presses_and_keeps_the_button_down(self):
+class TestClickAndDrag(ControlTestCase):
+    """close_palm is both click and drag: let go early and it clicks, keep holding and it
+    presses the button down so windows can be moved."""
+
+    def hold(self, seconds: float):
+        self.control._hold_started = self.control._hold_started - seconds
+
+    def test_a_quick_close_does_not_press_the_button_down(self):
+        self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.gui.mouseDown.assert_not_called()
+
+    def test_a_quick_close_clicks_when_you_let_go(self):
+        self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.hold(0.5)
+        self.control.handle("open_palm", landmarks_at(0.5, 0.5))
+        self.gui.click.assert_called_once()
+        self.gui.mouseDown.assert_not_called()
+
+    def test_holding_past_the_delay_starts_a_drag(self):
+        self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.hold(2.0)
+        self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.gui.mouseDown.assert_called_once()
+        self.gui.click.assert_not_called()
+
+    def test_the_button_stays_down_while_you_keep_holding(self):
+        self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.hold(2.0)
         self.control.handle("close_palm", landmarks_at(0.5, 0.5))
         self.control.handle("close_palm", landmarks_at(0.6, 0.6))
         self.gui.mouseDown.assert_called_once()
         self.gui.mouseUp.assert_not_called()
 
-    def test_the_window_follows_the_hand_while_dragging(self):
+    def test_the_window_follows_your_hand_once_dragging(self):
         self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.hold(2.0)
+        self.control.handle("close_palm", landmarks_at(0.6, 0.6))
         self.assertTrue(self.gui.moveTo.called)
 
-    def test_releasing_the_gesture_releases_the_button(self):
+    def test_the_cursor_stays_put_before_the_drag_starts(self):
+        self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.gui.moveTo.assert_not_called()
+
+    def test_ending_a_drag_releases_the_button_without_also_clicking(self):
+        self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.hold(2.0)
         self.control.handle("close_palm", landmarks_at(0.5, 0.5))
         self.control.handle("open_palm", landmarks_at(0.5, 0.5))
         self.gui.mouseUp.assert_called_once()
+        self.gui.click.assert_not_called()
 
     def test_losing_the_hand_entirely_still_releases_the_button(self):
+        self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.hold(2.0)
         self.control.handle("close_palm", landmarks_at(0.5, 0.5))
         self.control.handle(None, None)
         self.gui.mouseUp.assert_called_once()
 
-    def test_closing_down_never_leaves_the_button_stuck(self):
+    def test_a_single_flickered_frame_does_not_fire_a_click(self):
+        self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.control.handle(None, None)
+        self.gui.click.assert_not_called()
+
+    def test_shutting_down_mid_drag_never_leaves_the_button_stuck(self):
+        self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.hold(2.0)
         self.control.handle("close_palm", landmarks_at(0.5, 0.5))
         self.control.close()
         self.gui.mouseUp.assert_called_once()
+
+    def test_shutting_down_mid_hold_does_not_fire_a_stray_click(self):
+        self.control.handle("close_palm", landmarks_at(0.5, 0.5))
+        self.hold(0.5)
+        self.control.close()
+        self.gui.click.assert_not_called()
 
 
 class TestScroll(ControlTestCase):

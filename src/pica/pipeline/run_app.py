@@ -4,6 +4,7 @@ from pica.components.camera_stream import CameraStream
 from pica.components.classifier import GestureClassifier
 from pica.components.hand_tracker import HandTracker
 from pica.components.system_control import SystemControl
+from pica.utils import night_mode
 from pica.utils.config import load_config
 from pica.utils.visualizer import draw_landmarks, draw_status
 
@@ -13,6 +14,7 @@ def run():
     threshold = config.get("confidence_threshold", 0.75)
     cursor_threshold = config.get("cursor", {}).get("confidence_threshold", 0.6)
     cursor_gesture = config.get("cursor", {}).get("gesture")
+    night_cfg = config.get("night_mode", {})
 
     camera = CameraStream(camera_id=config.get("camera_id", 0)).start()
     tracker = HandTracker()
@@ -26,6 +28,8 @@ def run():
                 continue
 
             frame = cv2.flip(frame, 1)
+            frame = night_mode.apply(frame, night_cfg.get("mode", "auto"),
+                                     night_cfg.get("darkness_threshold", 60))
             hands = tracker.process_with_handedness(frame)
 
             gesture, confidence = None, None

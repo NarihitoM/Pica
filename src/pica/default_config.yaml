@@ -1,6 +1,12 @@
 camera_id: 0
 confidence_threshold: 0.75
 
+# lifts dim frames so hand tracking survives a dark room
+# auto = only when the frame is dark, on = always, off = never
+night_mode:
+  mode: auto
+  darkness_threshold: 60  # mean pixel value below which a frame counts as dark
+
 # gesture name -> action name (handled in src/components/system_control.py)
 gestures:
   close_palm: left_drag
@@ -26,3 +32,8 @@ brightness:
   step: 20  # percent added or removed per gesture
 
 action_cooldown_seconds: 0.6
+
+# close_palm doubles as click and drag: let go before this and it clicks,
+# keep holding and it presses the button down so you can move windows
+drag_hold_seconds: 2.0
+click_min_hold_seconds: 0.1  # ignores a single misdetected frame

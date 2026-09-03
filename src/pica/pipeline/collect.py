@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 
 from pica.components.hand_tracker import HandTracker
+from pica.utils import night_mode
 from pica.utils.paths import annotations_dir
 from pica.utils.visualizer import draw_landmarks
 
@@ -63,6 +64,7 @@ def collect(label: str, num_samples: int = 200, camera_id: int = 0, append: bool
                 continue
 
             frame = cv2.flip(frame, 1)
+            frame = night_mode.apply(frame)
             hands = tracker.process(frame)
             if hands:
                 samples.append(hands[0])
