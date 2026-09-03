@@ -72,3 +72,32 @@ class TestDrawGuide(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BrokenRecordingTestCase(unittest.TestCase):
+    """The exact failure a zero sample recording caused: appending to it crashed."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.target = Path(self._tmp.name)
+        self.addCleanup(self._tmp.cleanup)
+
+    def test_appending_to_a_flat_empty_file_recovers(self):
+        np.save(self.target / "close_palm.npy", np.array([], dtype=np.float32))
+        with quiet():
+            save("close_palm", batch(), target_dir=self.target)
+        self.assertEqual(np.load(self.target / "close_palm.npy").shape, (5, 21, 3))
+
+    def test_appending_to_an_unreadable_file_recovers(self):
+        (self.target / "close_palm.npy").write_bytes(b"not a npy file")
+        with quiet():
+            save("close_palm", batch(), target_dir=self.target)
+        self.assertEqual(np.load(self.target / "close_palm.npy").shape, (5, 21, 3))
+
+    def test_a_capture_that_saw_no_hand_writes_a_usable_file(self):
+        with quiet():
+            save("close_palm", np.array([], dtype=np.float32), target_dir=self.target)
+        self.assertEqual(np.load(self.target / "close_palm.npy").shape, (0, 21, 3))
+        with quiet():
+            save("close_palm", batch(), target_dir=self.target)
+        self.assertEqual(np.load(self.target / "close_palm.npy").shape, (5, 21, 3))

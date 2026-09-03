@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "narihito-pica"
-version = "0.7.0"
+version = "0.7.1"
 description = "Pica is the project that can control and manage your laptop or pc with the gestures."
 readme = "README.md"
 requires-python = ">=3.10"

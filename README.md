@@ -224,6 +224,14 @@ python -m pica.cli --demo
 
 ## What's new
 
+### 0.7.1 - a failed recording no longer poisons the gesture
+
+A capture that ended without seeing a hand was written as a flat empty array instead of an
+empty stack of landmarks. Recording that gesture again tried to append to it and crashed,
+so the one gesture you most needed to fix was the one you couldn't. Saving now writes the
+right shape either way, and an existing file that can't contribute -- empty, wrong shape,
+or unreadable -- is passed over rather than fatal, which repairs it on the next recording.
+
 ### 0.7.0 - your config keeps up, and empty recordings stop hiding
 
 Your config is copied once and never overwritten, which keeps your tuning safe but meant a

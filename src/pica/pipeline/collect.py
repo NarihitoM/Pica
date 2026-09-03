@@ -82,12 +82,31 @@ def collect(label: str, num_samples: int = 200, camera_id: int = 0, append: bool
     return save(label, np.array(samples, dtype=np.float32), append=append)
 
 
+EMPTY = np.empty((0, 21, 3), dtype=np.float32)
+
+
+def load_samples(path) -> np.ndarray:
+    """Existing samples, or nothing at all if the file can't contribute any.
+
+    A capture that saw no hand used to be written as a flat empty array rather than an
+    empty stack of landmarks, and that shape won't concatenate -- so appending to one
+    crashed instead of recording. Anything unreadable or the wrong shape is treated as
+    nothing to append, which quietly repairs the file on the next recording.
+    """
+    try:
+        existing = np.load(path)
+    except (ValueError, OSError):
+        return EMPTY
+    return existing if existing.ndim == 3 else EMPTY
+
+
 def save(label: str, samples: np.ndarray, append: bool = True, target_dir=None) -> str:
     """Appends by default -- re-recording a gesture adds to it unless append is False."""
     target_dir = target_dir or annotations_dir()
     out_path = target_dir / f"{label}.npy"
+    samples = samples.reshape(-1, 21, 3)
     if append and out_path.exists():
-        samples = np.concatenate([np.load(out_path), samples], axis=0)
+        samples = np.concatenate([load_samples(out_path), samples], axis=0)
 
     np.save(out_path, samples)
     print(f"saved {samples.shape[0]} samples to {out_path}")
