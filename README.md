@@ -35,6 +35,15 @@ each one so you have a second to get your hand ready, then opens the camera and 
 on screen which pose to hold and how many samples it still needs. Press `s` to skip a
 gesture, `q` to stop.
 
+It only asks about gestures you haven't recorded yet. Stop halfway through, or add a new
+gesture to your config later, and running `collect` again picks up where you left off
+rather than marching you back through poses that are already on disk:
+
+```
+already recorded, skipping: open_palm, close_palm, one_finger_up
+[1/2] get ready for 'four_finger_up' -- Enter to record, 's' to skip, 'q' to stop:
+```
+
 Recording takes about a minute per gesture. Move your hand around a little while you hold
 the pose. Closer, further, tilted, off to one side. If you record every sample from one
 frozen position, the model learns that exact position and gets confused the moment you sit
@@ -214,6 +223,14 @@ python -m pica.cli --demo
 ```
 
 ## What's new
+
+### 0.6.1 - collect remembers what you recorded
+
+A bare `narihito-pica collect` used to walk you through every gesture in your config,
+including the ones already sitting on disk. Now it only asks about the ones with no
+recording yet, so stopping halfway or adding a gesture later means you record the gap
+instead of the whole set again. `--replace` still re-records everything when that's what
+you want.
 
 ### 0.6.0 - four fingers, two hands, and a keyboard
 

@@ -31,12 +31,28 @@ def cmd_run(args):
     run()
 
 
+def pending_gestures(labels: list[str]) -> list[str]:
+    """The ones with nothing on disk yet, so a bare `collect` picks up where it left off
+    instead of walking you back through poses you already recorded."""
+    return [n for n in labels if not (annotations_dir() / f"{n}.npy").exists()]
+
+
 def cmd_collect(args):
     from pica.pipeline.collect import collect
 
     labels = [args.gesture] if args.gesture else gesture_names()
     if not labels:
         sys.exit(f"no gestures listed in {config_path()}")
+
+    if not args.gesture and not args.replace:
+        pending = pending_gestures(labels)
+        done = [n for n in labels if n not in pending]
+        if done:
+            print(f"already recorded, skipping: {', '.join(done)}")
+        if not pending:
+            sys.exit(f"every gesture in your config is recorded\n"
+                     f"re-record one with '{COMMAND} collect <gesture> --replace'")
+        labels = pending
 
     for index, label in enumerate(labels, start=1):
         if not args.gesture:
@@ -76,7 +92,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser = subparsers.add_parser("run", help="start gesture control")
     run_parser.set_defaults(func=cmd_run)
 
-    collect_parser = subparsers.add_parser("collect", help="record gesture samples (all configured gestures if none named)")
+    collect_parser = subparsers.add_parser("collect", help="record gesture samples (every one not recorded yet, if none named)")
     collect_parser.add_argument("gesture", nargs="?", help="record just this one gesture")
     collect_parser.add_argument("--samples", type=int, default=200)
     collect_parser.add_argument("--camera", type=int, default=0)
@@ -121,6 +137,23 @@ def demo():
 
     names = gesture_names()
     assert "open_palm" in names and len(names) == len(set(names)), names
+
+    import os
+    import tempfile
+
+    previous_home = os.environ.get("PICA_HOME")
+    with tempfile.TemporaryDirectory() as tmp:
+        os.environ["PICA_HOME"] = tmp
+        assert pending_gestures(["open_palm", "close_palm"]) == ["open_palm", "close_palm"]
+        (annotations_dir() / "open_palm.npy").write_bytes(b"")
+        assert pending_gestures(["open_palm", "close_palm"]) == ["close_palm"], "recorded gestures must be skipped"
+        (annotations_dir() / "close_palm.npy").write_bytes(b"")
+        assert pending_gestures(["open_palm", "close_palm"]) == []
+    if previous_home is None:
+        os.environ.pop("PICA_HOME", None)
+    else:
+        os.environ["PICA_HOME"] = previous_home
+
     print("cli demo OK")
 
 
