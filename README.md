@@ -186,6 +186,16 @@ python -m pica.cli --demo
 
 ## What's new
 
+### 0.4.2
+
+Tests and docs. There's now a `unittest` suite covering the parts that break quietly:
+landmark normalization, where your files land, append versus replace when recording,
+label ordering in the dataset, and the cursor and drag logic with `pyautogui` mocked out.
+The drag-release bug that used to leave the mouse button stuck when your hand left the
+frame has a test pinning it now.
+
+No behaviour changes. If it works for you today it works the same after upgrading.
+
 ### 0.4.1
 
 Packaging fix. The logo and links on the PyPI page pointed at paths that stopped existing
