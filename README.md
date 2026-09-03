@@ -105,10 +105,11 @@ default the first time you run anything, and is never overwritten after that.
 
 ```
 Pica/
-├── .github/workflows/            # CI (type check + build) and PyPI publish
+├── .github/workflows/            # CI (type check + tests + build) and PyPI publish
 ├── LICENSE
 ├── README.md
 ├── pyproject.toml
+├── tests/                        # unittest suite, no test framework to install
 └── src/
     └── pica/
         ├── __main__.py           # `python -m pica`
@@ -139,7 +140,16 @@ cd Pica
 pip install -e .
 ```
 
-Every module has a `demo()` self-check you can run directly:
+Run the test suite:
+
+```
+python -m unittest discover -s tests -t .
+```
+
+It uses only the standard library, points `PICA_HOME` at a temporary folder so your own
+recordings are never touched, and mocks `pyautogui` so nothing grabs your real cursor.
+
+Every module also has a `demo()` self-check you can run directly:
 
 ```
 python -m pica.pipeline.train
@@ -149,7 +159,7 @@ python -m pica.cli --demo
 
 ## Releasing
 
-CI runs the self-checks on every push. Publishing is automatic:
+CI type checks, runs the tests and builds the package on every push. Publishing is automatic:
 
 1. Bump `version` in `pyproject.toml`.
 2. Commit and push to `main`.
