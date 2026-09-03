@@ -4,9 +4,15 @@
 
 # Pica
 
-Pica is the project that can control and manage your laptop or pc with the gestures.
-Python, MediaPipe hand tracking, and a small PyTorch classifier trained on your own
-recorded gestures.
+Pica lets you control your laptop with hand gestures. Wave to move the cursor, close your
+palm to drag a window, hold two fingers up to scroll.
+
+It watches your webcam with MediaPipe, turns your hand into 21 tracked points, and feeds
+those to a small PyTorch model. The important part: the model is trained on *your* hands,
+from recordings you make yourself. Nobody's hand looks quite like yours, and a model
+trained on someone else's always feels slightly off.
+
+Windows only for now, mostly because the brightness control talks to WMI.
 
 ## Install
 
@@ -16,25 +22,34 @@ pip install narihito-pica
 
 ## Quick start
 
+Three commands, in this order:
+
 ```
 narihito-pica collect     # record every gesture, one at a time
-narihito-pica train       # train the classifier on what you recorded
+narihito-pica train       # train the model on what you recorded
 narihito-pica run         # start controlling your PC
 ```
 
-`narihito-pica collect` walks through each gesture in your config and waits for you to press
-Enter before recording it, so you can get your hand ready. Press `s` to skip one or
-`q` to stop. To redo a single gesture:
+`collect` walks you through the gestures one by one. It waits for you to press Enter before
+each one so you have a second to get your hand ready, then opens the camera and tells you
+on screen which pose to hold and how many samples it still needs. Press `s` to skip a
+gesture, `q` to stop.
+
+Recording takes about a minute per gesture. Move your hand around a little while you hold
+the pose. Closer, further, tilted, off to one side. If you record every sample from one
+frozen position, the model learns that exact position and gets confused the moment you sit
+differently.
+
+Messed one up? Record just that one again:
 
 ```
 narihito-pica collect open_palm --replace
 ```
 
-Recording appends by default, so `--replace` is what you want when a gesture went badly
-and you're re-recording it from scratch.
+`--replace` matters here. Recording appends by default, so without it you keep the bad
+samples and add more on top.
 
-`narihito-pica train` prints how many samples each gesture has and how accurately the
-trained model recognises each one, so you can see which gesture needs re-recording:
+Then train. It tells you what it learned from:
 
 ```
 training on:
@@ -46,25 +61,32 @@ accuracy:
   open_palm      100.0%  (200/200)
 ```
 
+Anything much below the others is the gesture to re-record.
+
 ## Gestures
 
 | Gesture | Action |
 |---|---|
-| `open_palm` | move the cursor (tracks your wrist position) |
-| `close_palm` | hold to drag -- press and hold moves windows, a quick close is a click |
+| `open_palm` | move the cursor (tracks your wrist) |
+| `close_palm` | hold to drag, quick close to click |
 | `one_finger_up` | volume up |
 | `one_finger_down` | volume down |
-| `two_finger_up` | scroll up (continuous while held) |
-| `two_finger_down` | scroll down (continuous while held) |
-| `three_finger_up` | screen brightness up |
-| `three_finger_down` | screen brightness down |
+| `two_finger_up` | scroll up (keeps going while held) |
+| `two_finger_down` | scroll down |
+| `three_finger_up` | brightness up |
+| `three_finger_down` | brightness down |
 
-Brightness steps by `brightness.step` percent per gesture (default 20) and uses Windows
-WMI, so it works on laptop displays.
+Brightness moves by `brightness.step` percent each time (20 by default) and goes through
+Windows WMI, so it works on laptop screens.
+
+Drag is worth calling out: hold `close_palm` and the mouse button stays down, so you can
+actually pick a window up and move it. Let go and it releases. A quick open-close reads as
+a plain click.
 
 ## Your files
 
-Everything you create lives outside the package, so upgrading Pica never touches it:
+Your recordings, config and trained model live in your home folder, not inside the
+installed package. Upgrading Pica never touches them:
 
 ```
 narihito-pica where
@@ -77,29 +99,33 @@ recordings:  ~/.pica/annotations
 model:       ~/.pica/gesture_classifier.pth
 ```
 
-Set `PICA_HOME` to keep several separate setups. The config is copied from the packaged
-default the first time you run anything, and is never overwritten after that.
+The config is copied from the packaged default the first time you run anything, and never
+overwritten after that, so your edits stick. Set `PICA_HOME` if you want to keep more than
+one setup side by side.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
 | `narihito-pica run` | start gesture control (`q` in the window quits) |
-| `narihito-pica collect [gesture]` | record samples; loops through every configured gesture if you don't name one |
+| `narihito-pica collect [gesture]` | record samples; loops through every gesture if you don't name one |
 | `narihito-pica train` | train on your recordings and save the model |
-| `narihito-pica where` | print where your config, recordings and model live |
+| `narihito-pica where` | print where your files live |
 
-`narihito-pica collect` takes `--samples`, `--camera` and `--replace`. `narihito-pica train` takes
-`--epochs`, `--batch-size` and `--lr`.
+`collect` takes `--samples`, `--camera` and `--replace`. `train` takes `--epochs`,
+`--batch-size` and `--lr`. The defaults are fine unless something's going wrong.
 
-## Adding a new gesture
+## Adding your own gesture
 
-1. Add it to `~/.pica/config.yaml` under `gestures:` (or as `cursor.gesture` if it should
-   drive the mouse), mapped to an action.
+1. Add it to `~/.pica/config.yaml` under `gestures:`, mapped to an action. If it should
+   drive the mouse instead, set it as `cursor.gesture`.
 2. If the action doesn't exist yet, add it to `_run_action` in
-   `pica/components/system_control/system_control.py`.
+   `src/pica/components/system_control/system_control.py`.
 3. `narihito-pica collect <name>`
 4. `narihito-pica train`
+
+Step 4 is the one people forget. Recording only writes samples to disk, it doesn't touch
+the model you're running.
 
 ## Project layout
 
@@ -109,27 +135,27 @@ Pica/
 ├── LICENSE
 ├── README.md
 ├── pyproject.toml
-├── tests/                        # unittest suite, no test framework to install
+├── tests/                        # unittest suite, nothing to install
 └── src/
     └── pica/
         ├── __main__.py           # `python -m pica`
-        ├── cli.py                # `narihito-pica run` / `collect` / `train` / `where`
+        ├── cli.py                # run / collect / train / where
         ├── default_config.yaml   # seeded into ~/.pica/config.yaml on first run
         ├── assets/               # logo + the bundled MediaPipe hand model
-        ├── components/           # one folder per feature, each a package with a barrel export
-        │   ├── brightness/       # steps display brightness up/down (WMI)
+        ├── components/           # one folder per feature, each with a barrel export
+        │   ├── brightness/       # steps the display up and down via WMI
         │   ├── camera_stream/    # threaded webcam reader
-        │   ├── classifier/       # PyTorch MLP: landmarks -> gesture name + confidence
+        │   ├── classifier/       # PyTorch MLP: landmarks to gesture name + confidence
         │   ├── hand_tracker/     # MediaPipe HandLandmarker wrapper
-        │   └── system_control/   # gesture -> cursor / drag / volume / scroll / brightness
+        │   └── system_control/   # gesture to cursor / drag / volume / scroll / brightness
         ├── pipeline/
         │   ├── collect.py        # records landmark samples for one gesture
-        │   ├── train.py          # recordings -> trained model
-        │   └── run_app.py        # camera -> tracker -> classifier -> system_control
-        └── utils/                # landmark normalization, config loader, paths, overlay
+        │   ├── train.py          # recordings to trained model
+        │   └── run_app.py        # camera to tracker to classifier to system_control
+        └── utils/                # landmark normalization, config, paths, overlay
 ```
 
-Each component folder exports its public class from `__init__.py`, so imports stay flat:
+Each component folder exports its class from `__init__.py`, so imports stay short:
 `from pica.components.hand_tracker import HandTracker`.
 
 ## Developing
@@ -140,16 +166,17 @@ cd Pica
 pip install -e .
 ```
 
-Run the test suite:
+Run the tests:
 
 ```
 python -m unittest discover -s tests -t .
 ```
 
-It uses only the standard library, points `PICA_HOME` at a temporary folder so your own
-recordings are never touched, and mocks `pyautogui` so nothing grabs your real cursor.
+Standard library only, no test framework to install. They point `PICA_HOME` at a temp
+folder so your own recordings are never touched, and they mock `pyautogui`, so nothing
+runs off with your real cursor mid-test.
 
-Every module also has a `demo()` self-check you can run directly:
+Most modules also carry a `demo()` self-check you can run on its own:
 
 ```
 python -m pica.pipeline.train
@@ -161,51 +188,60 @@ python -m pica.cli --demo
 
 ### 0.4.1
 
-- Packaging fix only. The logo and project links on the PyPI page were pointing at paths
-  that stopped existing when the package moved to a `src/` layout.
+Packaging fix. The logo and links on the PyPI page pointed at paths that stopped existing
+when the package moved to a `src/` layout.
 
-### 0.4.0 -- guided recording
+### 0.4.0 - guided recording
 
-- `collect` now draws the instructions onto the camera feed: which pose to hold, whether
-  it is actually being recorded, a progress bar, and the gesture coming up next. Before
-  this the window was a bare webcam feed and you had to read the terminal to know what
-  Pica wanted from you.
-- The hand skeleton is drawn while recording, so you can see the moment tracking drops
-  out instead of discovering a bad sample set at training time.
+`collect` now puts the instructions on the camera feed itself: which pose to hold, whether
+it's actually recording, how far along it is, and what's coming next. Before this the
+window was a bare webcam feed and you had to keep glancing at the terminal to know what
+Pica wanted from you.
 
-### 0.3.0 -- know what you trained
+It also draws the hand skeleton while recording, so you can see tracking drop out the
+moment it happens instead of finding out at training time.
 
-- `train` reports per-gesture sample counts and per-gesture accuracy. A gesture that
-  misfires live is nearly always one with far fewer samples than the rest, or one the
-  model confuses with its neighbour -- both are now visible before you run anything.
-- Moved to a `src/` layout so the installed package is what gets imported, not whatever
-  happens to sit in the working directory.
+### 0.3.0 - know what you trained
 
-### 0.2.0 -- stable command name
+`train` started reporting sample counts and accuracy per gesture. When a gesture misfires
+live it's almost always one with fewer samples than the rest, or one the model keeps
+confusing with its neighbour. Both are now obvious before you run anything.
 
-- The console script became `narihito-pica`, matching the distribution name on PyPI.
+Also moved to a `src/` layout, so what you import is what's installed rather than whatever
+happens to be sitting in the working directory.
 
-### 0.1.0 -- first release
+### 0.2.0 - stable command name
 
-- Installable from PyPI, with `collect` / `train` / `run` / `where` subcommands.
-- Recordings, config and the trained model live in `~/.pica`, outside the installed
-  package, so an upgrade never touches your data and a reinstall never loses it.
-  `PICA_HOME` overrides the location if you want to keep more than one set.
+The console script became `narihito-pica`, matching the name on PyPI.
+
+### 0.1.0 - first release
+
+Installable from PyPI with `collect`, `train`, `run` and `where`.
+
+Your recordings, config and model live in `~/.pica`, outside the package, so upgrading
+never touches your data and reinstalling never loses it. `PICA_HOME` moves that if you
+want more than one set.
 
 ## Troubleshooting
 
-- **`narihito-pica run` says there's no trained model**: run `narihito-pica collect` then `narihito-pica train`.
-- **A newly recorded gesture doesn't do anything**: recording only saves samples --
-  it does not update the live model. Run `narihito-pica train` after recording.
-- **Cursor lags behind your hand**: MediaPipe inference is ~55ms per frame on CPU, which
-  caps the loop near 18fps. Lowering `cursor.smoothing` helps a little; the rest is the
-  model.
-- **Cursor jumps when clicking**: the cursor gesture tracks the wrist (stable), not a
-  fingertip (moves as fingers curl) -- if you change `cursor.landmark_index`, keep this
-  in mind.
-- **A gesture works in testing but misfires live**: the model likely overfit to one
-  distance/angle/lighting setup. When recording, move your hand around a bit while
-  holding the pose instead of staying perfectly still.
-- **Similar gestures get confused** (e.g. one finger vs two fingers): make sure the
-  poses are clearly distinct when recording -- ambiguous hand shapes will bleed into
-  each other no matter how much data you add.
+**It says there's no trained model.** You skipped a step. `narihito-pica collect`, then
+`narihito-pica train`.
+
+**A gesture I just recorded does nothing.** Recording only saves samples, it doesn't
+update the running model. Train again.
+
+**The cursor lags behind my hand.** MediaPipe takes roughly 55ms per frame on CPU, which
+caps the loop somewhere near 18fps. Dropping `cursor.smoothing` helps a bit, but most of
+the delay is the model and there's no setting that removes it.
+
+**The cursor jumps when I click.** It tracks your wrist, which stays put, rather than a
+fingertip, which swings around as your fingers curl. Worth remembering if you change
+`cursor.landmark_index`.
+
+**A gesture works fine while I'm testing but misfires in real use.** The model overfit to
+one distance, angle or lighting setup. Re-record it and move around more while you hold
+the pose.
+
+**Two gestures keep getting confused.** Usually one finger versus two. If the poses look
+similar to you they look similar to the model, and no amount of extra data fixes an
+ambiguous pose. Pick shapes that are clearly different.
